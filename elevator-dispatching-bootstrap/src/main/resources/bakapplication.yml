@@ -1,0 +1,21 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://10.10.1.167:27017,10.10.1.167:27018,10.10.1.167:27019/${spring.data.mongodb.database}?replicaSet=rs
+      database: elevator-dispatching
+  application:
+    name: wisdom-regulation
+  cache:
+    type: caffeine
+    caffeine:
+      spec: initialCapacity=10,maximumSize=500,expireAfterAccess=60s
+logging:
+  level:
+    com.robustel: debug
+server:
+  port: 8080
+robustel:
+  uid:
+    snow-flake:
+      machineId: 2
+      dataCenterId: 1

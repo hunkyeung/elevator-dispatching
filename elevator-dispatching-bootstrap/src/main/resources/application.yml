@@ -1,0 +1,70 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://10.10.1.167:27017,10.10.1.167:27018,10.10.1.167:27019/${spring.data.mongodb.database}?replicaSet=rs
+      database: elevator-dispatching
+  activemq:
+    broker-url: tcp://10.10.1.167:61616
+    packages:
+      trust-all: true
+    user: innerrobustel
+    password: 654321
+  application:
+    name: dispatching
+robustel:
+  uid:
+    snow-flake:
+      machineId: 2
+      dataCenterId: 1
+  #  retention-period-of-month: 5
+  mqtt:
+    consumer:
+      data:
+        queue: Consumer.data.VirtualTopic.${spring.application.name}.*.data.>
+        concurrency: 1-20
+      ack:
+        queue: Consumer.ack.VirtualTopic.${spring.application.name}.*.ack.>
+        concurrency: 1-20
+      rule:
+        queue: Consumer.rule.VirtualTopic.${spring.application.name}.*.data.>
+        concurrency: 1-20
+      onlineOrOffline:
+        queue: OnlineOrOffline
+        concurrency: 1-10
+    activemq:
+      enabled: true
+      list:
+        - broker-name: activemq
+          location: Asia
+          broker-uri: tcp://10.10.1.167:1883
+          upstream: VirtualTopic/${spring.application.name}/${thingId}
+          downstream: VirtualTopic/${spring.application.name}/${thingId}
+          service-uri: tcp://10.10.1.167:61616
+          username: innerrobustel
+          password: 654321
+          certificates:
+            ca: ca
+            cert: cert
+            key: key
+    aliyun:
+      enabled: false
+      list:
+        - brokerName: aliyun
+          location: cn-shanghai
+          brokerUri: iot-06z00bgy5ebfuji.mqtt.iothub.aliyuncs.com
+          upstream: '/ggy4LmjvqZq/${thingId}/user'
+          downstream: '/ggy4LmjvqZq/${thingId}/user'
+          accessKey: LTAI5tKoE8rdEX7GYNU29VeN
+          accessSecret: 0BD04TNyX3fucATB24Q9wYGJhwSxGx
+          consumerGroupId: VBPL44oVSlN83lP6a31C000100
+          signMethod: hmacsha1
+          host: iot-06z00bgy5ebfuji.amqp.iothub.aliyuncs.com
+          connectionUrl: failover:(amqps://${robustel.mqtt.aliyun.list[0].host}:5671?amqp.idleTimeout=80000)?failover.reconnectDelay=30
+          iotInstanceId: iot-06z00bgy5ebfuji
+          productKey: ggy4LmjvqZq
+          regionId: cn-shanghai
+logging:
+  level:
+    com.robustel: info
+server:
+  port: 8080
