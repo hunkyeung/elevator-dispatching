@@ -1,6 +1,7 @@
 package com.robustel.dispatching.domain.robot;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
+import com.robustel.dispatching.domain.elevator.ElevatorId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.yeung.api.AbstractEntity;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author YangXuehong
@@ -22,15 +25,17 @@ import java.time.Instant;
 public class Robot extends AbstractEntity<RobotId> {
     private Instant enteringTime;
     private Instant leavingTime;
+    private Set<ElevatorId> whiteList;
 
     public Robot(RobotId id) {
-        super(id);
+        this(id, null, null, new HashSet<>());
     }
 
-    public Robot(RobotId id, Instant enteringTime, Instant leavingTime) {
+    public Robot(RobotId id, Instant enteringTime, Instant leavingTime, Set<ElevatorId> whiteList) {
         super(id);
         this.enteringTime = enteringTime;
         this.leavingTime = leavingTime;
+        this.whiteList = whiteList;
     }
 
     public void leave(Elevator elevator) {
@@ -40,10 +45,17 @@ public class Robot extends AbstractEntity<RobotId> {
     }
 
     public void enter(Elevator elevator) {
+        if (!canEnter(elevator.getId())) {
+            throw new RobotNotAllowedEnterException(getId(), elevator.getId());
+        }
         elevator.enter(getId());
         reset();
         this.enteringTime = Instant.now();
         log.info("机器人【{}】已经进电梯【{}】", getId(), elevator.getId());
+    }
+
+    public boolean canEnter(ElevatorId elevatorId) {
+        return this.whiteList.contains(elevatorId);
     }
 
     //reset the entering time and leaving time
@@ -51,5 +63,15 @@ public class Robot extends AbstractEntity<RobotId> {
         log.info("重置机器人【{}】状态：入梯时间和出梯时间", getId());
         this.enteringTime = null;
         this.leavingTime = null;
+    }
+
+    public void bind(Elevator elevator) {
+        elevator.bind(getId());
+        this.whiteList.add(elevator.getId());
+    }
+
+    public void unbind(Elevator elevator) {
+        elevator.unbind(getId());
+        this.whiteList.remove(elevator.getId());
     }
 }

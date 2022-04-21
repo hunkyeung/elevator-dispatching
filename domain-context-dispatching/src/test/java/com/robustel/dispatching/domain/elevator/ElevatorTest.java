@@ -8,7 +8,9 @@ import org.yeung.api.util.ServiceLocator;
 import org.yeung.core.EventPublisher;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -21,8 +23,9 @@ import static org.mockito.Mockito.when;
 class ElevatorTest {
     @Test
     void Given_OutOfService_When_Response_Then_ThrowsIllegalStateException() {
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.OUT_OF_SERVICE, new HashMap<>(), new HashMap<>());
-        Assertions.assertThrows(IllegalStateException.class,
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
+                State.OUT_OF_SERVICE, new HashMap<>(), new HashMap<>(), new HashSet<>());
+        Assertions.assertThrows(ElevatorOutOfServiceException.class,
                 () -> elevator.response(mock(Request.class)));
     }
 
@@ -33,8 +36,9 @@ class ElevatorTest {
         when(mock.getRobotId()).thenReturn(RobotId.of("1"));
         Map<String, Request> requestMap = new HashMap<>();
         requestMap.put("1", request);
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, requestMap, new HashMap<>());
-        Assertions.assertThrows(IllegalStateException.class,
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
+                State.IN_SERVICE, requestMap, new HashMap<>(), new HashSet<>());
+        Assertions.assertThrows(RequestAlreadyExistException.class,
                 () -> elevator.response(mock));
     }
 
@@ -45,8 +49,9 @@ class ElevatorTest {
         when(mock.getRobotId()).thenReturn(RobotId.of("1"));
         Map<String, Request> requestMap = new HashMap<>();
         requestMap.put("1", request);
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, new HashMap<>(), requestMap);
-        Assertions.assertThrows(IllegalStateException.class,
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
+                State.IN_SERVICE, new HashMap<>(), requestMap, new HashSet<>());
+        Assertions.assertThrows(RequestAlreadyExistException.class,
                 () -> elevator.response(mock));
     }
 
@@ -64,7 +69,8 @@ class ElevatorTest {
         RobotId robotId = RobotId.of("1");
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         calledRequests.put(request.getRobotId().getValue(), request);
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, calledRequests, new HashMap<>());
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
+                State.IN_SERVICE, calledRequests, new HashMap<>(), new HashSet<>());
         elevator.enter(robotId);
         assertEquals(request, elevator.getTookRequests().get(robotId.getValue()));
         assertNull(elevator.getCalledRequests().get(robotId.getValue()));
@@ -77,8 +83,9 @@ class ElevatorTest {
         RobotId robotId = RobotId.of("1");
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         calledRequests.put(request.getRobotId().getValue(), request);
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, calledRequests, new HashMap<>());
-        Assertions.assertThrows(IllegalStateException.class,
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
+                State.IN_SERVICE, calledRequests, new HashMap<>(), new HashSet<>());
+        Assertions.assertThrows(RequestNotFoundException.class,
                 () -> elevator.enter(RobotId.of("2")));
     }
 
@@ -88,7 +95,8 @@ class ElevatorTest {
         RobotId robotId = RobotId.of("1");
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         tookRequests.put(request.getRobotId().getValue(), request);
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, new HashMap<>(), tookRequests);
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
+                State.IN_SERVICE, new HashMap<>(), tookRequests, new HashSet<>());
         elevator.leave(robotId);
         assertNull(elevator.getTookRequests().get(robotId.getValue()));
     }
@@ -102,8 +110,8 @@ class ElevatorTest {
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         tookRequests.put(request.getRobotId().getValue(), request);
         Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE,
-                new HashMap<>(), tookRequests);
-        Assertions.assertThrows(IllegalStateException.class,
+                new HashMap<>(), tookRequests, new HashSet<>());
+        Assertions.assertThrows(RequestNotFoundException.class,
                 () -> elevator.leave(RobotId.of("2")));
     }
 
@@ -140,7 +148,8 @@ class ElevatorTest {
         Map<String, Request> took = new HashMap<>();
         took.put("3", Request.of(RobotId.of("3"), Floor.of(5), Floor.of(10)));
         took.put("4", Request.of(RobotId.of("4"), Floor.of(8), Floor.of(2)));
-        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, called, took);
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, called, took,
+                new HashSet<>());
 
         elevator.arrive(Floor.of(1), Direction.UP);
         assertTrue(robots.get("1"));
@@ -175,5 +184,29 @@ class ElevatorTest {
         robots.clear();
     }
 
+    @Test
+    void Given_RobotId_When_Bind_The_AddInWhiteList() {
+        Map<String, Request> called = new HashMap<>();
+        Map<String, Request> took = new HashMap<>();
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, called, took,
+                new HashSet<>());
+        RobotId robotId = RobotId.of("1");
+        elevator.bind(robotId);
+        assertTrue(elevator.getWhiteList().contains(robotId));
+    }
+
+    @Test
+    void Given_RobotId_When_Unbind_The_RemoveFromWhiteList() {
+        Map<String, Request> called = new HashMap<>();
+        Map<String, Request> took = new HashMap<>();
+        Set<RobotId> whiteList = new HashSet<>();
+        RobotId robotId = RobotId.of("1");
+        whiteList.add(robotId);
+        Elevator elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1), State.IN_SERVICE, called, took,
+                whiteList);
+        assertTrue(elevator.getWhiteList().contains(robotId));
+        elevator.unbind(robotId);
+        assertFalse(elevator.getWhiteList().contains(robotId));
+    }
 
 }

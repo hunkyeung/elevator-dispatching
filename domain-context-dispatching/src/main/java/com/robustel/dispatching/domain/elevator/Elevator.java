@@ -8,10 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.yeung.api.AbstractEntity;
 import org.yeung.api.util.DomainEventPublisher;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author YangXuehong
@@ -27,18 +24,21 @@ public class Elevator extends AbstractEntity<ElevatorId> {
     private State state;
     private Map<String, Request> calledRequests;//招唤中的请求
     private Map<String, Request> tookRequests;//乘梯中请求
+    private Set<RobotId> whiteList; //
 
-    public Elevator(ElevatorId id, Floor highest, Floor lowest, State state, Map<String, Request> calledRequests, Map<String, Request> tookRequests) {
+    public Elevator(ElevatorId id, Floor highest, Floor lowest, State state, Map<String, Request> calledRequests, Map<String, Request> tookRequests,
+                    Set<RobotId> whiteList) {
         super(id);
         this.highest = highest;
         this.lowest = lowest;
         this.state = state;
         this.calledRequests = calledRequests;
         this.tookRequests = tookRequests;
+        this.whiteList = whiteList;
     }
 
     public static Elevator of(ElevatorId elevatorId, Floor highest, Floor lowest) {
-        return new Elevator(elevatorId, highest, lowest, State.IN_SERVICE, new HashMap<>(), new HashMap<>());
+        return new Elevator(elevatorId, highest, lowest, State.IN_SERVICE, new HashMap<>(), new HashMap<>(), new HashSet<>(0));
     }
 
     public void response(Request request) {
@@ -113,5 +113,13 @@ public class Elevator extends AbstractEntity<ElevatorId> {
     public void release() {
         //todo 当出现一机多梯时，不能简单释放开门，需要接收到所以通知到的机器人返回释放开门后，方可真正的释放
         DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
+    }
+
+    public void unbind(RobotId robotId) {
+        this.whiteList.remove(robotId);
+    }
+
+    public void bind(RobotId robotId) {
+        this.whiteList.add(robotId);
     }
 }
