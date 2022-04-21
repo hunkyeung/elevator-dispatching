@@ -67,4 +67,13 @@ logging:
   level:
     com.robustel: info
 server:
-  port: 8080
+  port: 443
+  ssl:
+    enabled: true
+    key-store: classpath:tomcat_https.keystore
+    key-store-type: JKS
+    key-alias: tomcat_https
+    key-password: 123456
+    key-store-password: 123456
+elevator-dispatching:
+  app-name: e2c_s_ladder_control_rs485

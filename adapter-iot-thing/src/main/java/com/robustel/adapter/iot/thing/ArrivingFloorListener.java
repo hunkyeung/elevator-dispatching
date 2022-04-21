@@ -7,6 +7,7 @@ import com.robustel.dispatching.domain.elevator.ElevatorId;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.rule.domain.matched_event.MatchedEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -18,6 +19,9 @@ import java.util.Map;
 @Component
 @Slf4j
 public class ArrivingFloorListener {
+    @Value("${elevator-dispatching.app-name}")
+    private String appName;
+
     private final ArrivingFloorApplication arrivingFloorApplication;
 
     public ArrivingFloorListener(ArrivingFloorApplication arrivingFloorApplication) {
@@ -26,7 +30,7 @@ public class ArrivingFloorListener {
 
     @Subscribe
     public void arrive(MatchedEvent event) {
-        if (event.getFact().get("uri").equals(".edge.arriving_event")) {
+        if (event.getFact().get("uri").equals("." + appName + ".arriving_event")) {
             Map properties = ((Map) event.getFact().get("properties"));
             Direction direction = Direction.valueOf((String) properties.get("direction"));
             int floor = Integer.valueOf((String) properties.get("floor"));

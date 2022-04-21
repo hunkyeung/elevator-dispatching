@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.ToString;
 import org.yeung.api.AbstractEvent;
 
+import java.util.Map;
+
 /**
  * @author YangXuehong
  * @date 2022/4/14
@@ -14,10 +16,11 @@ import org.yeung.api.AbstractEvent;
 @ToString(callSuper = true)
 public class RobotRegisteredEvent extends AbstractEvent {
     private final RobotId robotId;
-    private final String modelId;
+    private final Map<String, Object> params;
 
-    public RobotRegisteredEvent(RobotId robotId, String modelId) {
+    public RobotRegisteredEvent(RobotId robotId, Map<String, Object> params) {
+        super();
         this.robotId = robotId;
-        this.modelId = modelId;
+        this.params = params;
     }
 }

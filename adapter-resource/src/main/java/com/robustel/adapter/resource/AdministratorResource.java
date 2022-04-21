@@ -42,12 +42,14 @@ public class AdministratorResource {
 
 
     @PutMapping("/robots/{robotId}/binding")
-    public void bindElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
+    public RestResponse<Void> bindElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
         bindingAndUnbindingElevatorApplication.doBindElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+        return RestResponse.ofSuccessWithoutResult();
     }
 
     @PutMapping("/robots/{robotId}/unbinding")
-    public void unbindElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
+    public RestResponse<Void> unbindElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
         bindingAndUnbindingElevatorApplication.doUnbindElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+        return RestResponse.ofSuccessWithoutResult();
     }
 }
