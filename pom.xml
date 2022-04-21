@@ -17,6 +17,7 @@
         <module>adapter-persistence-mongodb</module>
         <module>adapter-resource</module>
         <module>adapter-iot-thing</module>
+        <module>elevator-dispatching-bootstrap</module>
     </modules>
 
     <properties>
@@ -102,6 +103,6 @@
                 <scope>test</scope>
             </dependency>
         </dependencies>
-
     </dependencyManagement>
+
 </project>

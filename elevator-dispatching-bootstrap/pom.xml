@@ -7,7 +7,7 @@
         <groupId>com.robustel</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <groupId>com.example</groupId>
+    <groupId>com.robustel</groupId>
     <artifactId>elevator-dispatching-bootstrap</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>elevator-dispatching-bootstrap</name>
@@ -22,12 +22,12 @@
         </dependency>
         <dependency>
             <groupId>com.robustel</groupId>
-            <artifactId>adapter-resource</artifactId>
+            <artifactId>adapter-resource-dispatching</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.robustel</groupId>
-            <artifactId>adapter-persistence-mongodb</artifactId>
+            <artifactId>adapter-persistence-mongodb-dispatching</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!--thing-->
@@ -63,7 +63,7 @@
         </dependency>
         <dependency>
             <groupId>com.robustel</groupId>
-            <artifactId>adapter-iot-thing</artifactId>
+            <artifactId>adapter-iot-thing-dispatching</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
@@ -75,6 +75,7 @@
     </dependencies>
 
     <build>
+        <finalName>elevator-dispatching-bootstrap</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

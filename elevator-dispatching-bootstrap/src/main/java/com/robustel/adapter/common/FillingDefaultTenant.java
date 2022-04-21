@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Order(5)
 @Slf4j
-public class FillingTenant {
+public class FillingDefaultTenant {
 
     @Pointcut("(execution(public * com.robustel.*.application..*Application.*(..))) " +
             "&& !(execution(public * com.robustel.thing.application.GettingThingIdByNameApplication.*(..)))" +

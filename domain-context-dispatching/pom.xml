@@ -25,4 +25,5 @@
             <artifactId>ddd-core</artifactId>
         </dependency>
     </dependencies>
+
 </project>
