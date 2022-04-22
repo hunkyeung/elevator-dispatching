@@ -58,29 +58,6 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         DomainEventPublisher.publish(new RequestSummitedEvent(getId(), request));
     }
 
-    /**
-     * 当请求的机器人进入电梯后，请求变成进行中
-     */
-    public void enter(RobotId robotId) {
-        Request request = this.calledRequests.remove(robotId.getValue());
-        if (request == null) {
-            log.warn("找不到该机器【{}】乘梯【{}】请求", robotId, getId());
-            throw new RequestNotFoundException(robotId, getId());
-        }
-        this.tookRequests.put(request.getRobotId().getValue(), request);
-        respondFrom(robotId);
-    }
-
-    public void leave(RobotId robotId) {
-        Request request = this.tookRequests.remove(robotId.getValue());
-        if (request == null) {
-            log.warn("找不到该机器【{}】乘梯【{}】请求", robotId, getId());
-            throw new RequestNotFoundException(robotId, getId());
-        }
-        DomainEventPublisher.publish(new RobotLeftEvent(getId(), request));
-        respondFrom(robotId);
-    }
-
     // 当电梯到达时，通知相关机器人进出电梯
     public void arrive(Floor floor, Direction direction) {
         //先出后进
@@ -123,7 +100,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
     }
 
     public void release(RobotId robotId) {
-        //todo 当出现一机多梯时，不能简单释放开门，需要接收到所以通知到的机器人返回释放开门后，方可真正的释放
+        //todo 如果机器人无法出梯，且确保安全后，释放电梯，梯控请求是否仍保留
         Request request = this.calledRequests.remove(robotId.getValue());
         if (request != null) {//当机器人主动释放电梯时，表示机器人乘梯失败。如果需要继续乘梯，需重新招唤电梯
             respondFrom(robotId);

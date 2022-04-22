@@ -1,7 +1,9 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.google.common.eventbus.Subscribe;
+import com.robustel.dispatching.domain.robot.Robot;
 import com.robustel.dispatching.domain.robot.RobotId;
+import com.robustel.dispatching.domain.robot.RobotNotAllowedEnterException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author YangXuehong
@@ -27,6 +28,7 @@ class ElevatorTest {
     private Elevator elevator;
     private Map<String, Request> called;
     private Map<String, Request> took;
+    private Set<RobotId> notified;
 
     @BeforeEach
     void init() {
@@ -35,10 +37,11 @@ class ElevatorTest {
         whiteList.add(robotId);
         called = new HashMap<>();
         took = new HashMap<>();
+        notified = new HashSet<>();
         outOfService = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
-                State.OUT_OF_SERVICE, called, took, whiteList, new HashSet<>());
+                State.OUT_OF_SERVICE, called, took, whiteList, notified);
         elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
-                State.IN_SERVICE, called, took, whiteList, new HashSet<>());
+                State.IN_SERVICE, called, took, whiteList, notified);
     }
 
     @Test
@@ -76,43 +79,61 @@ class ElevatorTest {
     }
 
     @Test
-    void Given_RobotWaitForElevator_When_Enter_Then_RequestInTookMap() {
+    void Given_RobotNotInWhiteList_When_Enter_Then_ThrowsRobotNotAllowedEnterException() {
+        RobotId robotId = RobotId.of("2");
+        Robot robot = mock(Robot.class);
+        when(robot.getId()).thenReturn(robotId);
+        Assertions.assertThrows(RobotNotAllowedEnterException.class,
+                () -> elevator.enter(robot));
+
+    }
+
+    @Test
+    void Given_RobotWithoutTakeElevator_When_Enter_Then_ThrowsRequestNotFoundException() {
         RobotId robotId = RobotId.of("1");
+        Robot robot = mock(Robot.class);
+        when(robot.getId()).thenReturn(robotId);
+        Assertions.assertThrows(RequestNotFoundException.class,
+                () -> elevator.enter(robot));
+
+    }
+
+    @Test
+    void Given_RobotTakeElevator_When_Enter_Then_ThrowsRequestNotFoundException() {
+        RobotId robotId = RobotId.of("1");
+        Robot robot = mock(Robot.class);
+        when(robot.getId()).thenReturn(robotId);
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         called.put(request.getRobotId().getValue(), request);
-        elevator.enter(robotId);
-        assertEquals(request, elevator.getTookRequests().get(robotId.getValue()));
-        assertNull(elevator.getCalledRequests().get(robotId.getValue()));
+        notified.add(robotId);
+        elevator.enter(robot);
+        assertTrue(took.containsValue(request));
+        verify(robot).enter(ElevatorId.of("foo"));
+        assertFalse(notified.contains(robotId));
     }
 
 
     @Test
-    void Given_RobotWaitForElevator_When_EnterWithNonRobotId_Then_ThrowsIllegalStateException() {
-        Map<String, Request> calledRequests = new HashMap<>();
+    void Given_RobotNotInElevator_When_Leave_Then_ThrowsRequestNotFoundException() {
         RobotId robotId = RobotId.of("1");
-        Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        calledRequests.put(request.getRobotId().getValue(), request);
+        Robot robot = mock(Robot.class);
+        when(robot.getId()).thenReturn(robotId);
         Assertions.assertThrows(RequestNotFoundException.class,
-                () -> elevator.enter(RobotId.of("2")));
+                () -> elevator.leave(robot));
     }
 
     @Test
-    void Given_RobotInElevator_When_Leave_Then_RequestInTookMap() {
+    void Given_RobotInElevator_When_Leave_Then_Success() {
         RobotId robotId = RobotId.of("1");
+        Robot robot = mock(Robot.class);
+        when(robot.getId()).thenReturn(robotId);
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         took.put(request.getRobotId().getValue(), request);
-        elevator.leave(robotId);
-        assertNull(elevator.getTookRequests().get(robotId.getValue()));
-    }
-
-
-    @Test
-    void Given_RobotNotInElevator_When_Leave_Then_ThrowsIllegalStateException() {
-        RobotId robotId = RobotId.of("1");
-        Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        took.put(request.getRobotId().getValue(), request);
-        Assertions.assertThrows(RequestNotFoundException.class,
-                () -> elevator.leave(RobotId.of("2")));
+        notified.add(robotId);
+        elevator.leave(robot);
+        assertFalse(took.containsValue(request));
+        verify(robot).leave(ElevatorId.of("foo"));
+        assertFalse(notified.contains(robotId));
     }
 
     @Test
@@ -192,6 +213,19 @@ class ElevatorTest {
         assertTrue(elevator.getWhiteList().contains(robotId));
         elevator.unbind(robotId);
         assertFalse(elevator.getWhiteList().contains(robotId));
+    }
+
+    @Test
+    void Given_RobotTakeElevator_When_Release_Then_CleanRobotRequest() {
+        RobotId robotId = RobotId.of("1");
+        Robot robot = mock(Robot.class);
+        when(robot.getId()).thenReturn(robotId);
+        Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
+        called.put(request.getRobotId().getValue(), request);
+        notified.add(robotId);
+        elevator.release(robotId);
+        assertFalse(called.containsValue(request));
+        assertFalse(notified.contains(robotId));
     }
 
 }
