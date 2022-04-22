@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.yeung.api.util.DomainEventPublisher;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -34,7 +35,7 @@ public class RegisteringRobotApplication {
         }
         Robot robot = new Robot(robotId);
         robotRepository.save(robot);
-        Map<String, Object> params = new HashMap<>();
+        Map<String, Serializable> params = new HashMap<>();
         params.put("modelId", command.getModelId());
         DomainEventPublisher.publish(new RobotRegisteredEvent(robotId, params));
         return robot.getId().getValue();

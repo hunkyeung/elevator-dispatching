@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.yeung.api.AbstractEvent;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -16,9 +17,9 @@ import java.util.Map;
 @Getter
 public class ElevatorRegisteredEvent extends AbstractEvent {
     private final ElevatorId elevatorId;
-    private final Map<String, Object> params;
+    private final Map<String, Serializable> params;
 
-    public ElevatorRegisteredEvent(ElevatorId elevatorId, Map<String, Object> params) {
+    public ElevatorRegisteredEvent(ElevatorId elevatorId, Map<String, Serializable> params) {
         super();
         this.elevatorId = elevatorId;
         this.params = params;

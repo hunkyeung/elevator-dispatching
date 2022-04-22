@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.yeung.api.util.DomainEventPublisher;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -31,7 +32,7 @@ public class RegisteringElevatorApplication {
         }
         Elevator elevator = Elevator.of(elevatorId, Floor.of(command.getHighest()), Floor.of(command.getLowest()));
         elevatorRepository.save(elevator);
-        Map<String, Object> params = new HashMap<>();
+        Map<String, Serializable> params = new HashMap<>();
         params.put("modelId", command.getModelId());
         params.put("sn", command.getSn());
         DomainEventPublisher.publish(new ElevatorRegisteredEvent(elevatorId, params));

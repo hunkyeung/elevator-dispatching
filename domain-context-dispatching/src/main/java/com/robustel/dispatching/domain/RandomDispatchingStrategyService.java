@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RandomDispatchingStrategyService implements DispatchingStrategyService {
     private final ElevatorRepository elevatorRepository;
+    private static final Random random = new Random();
 
     public RandomDispatchingStrategyService(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
@@ -36,7 +37,6 @@ public class RandomDispatchingStrategyService implements DispatchingStrategyServ
         if (elevatorList.isEmpty()) {
             throw new NoElevatorAvailableException(robot.getId());
         }
-        Elevator elevator = elevatorList.get(new Random().nextInt(elevatorList.size()));
-        return elevator;
+        return elevatorList.get(random.nextInt(elevatorList.size()));
     }
 }

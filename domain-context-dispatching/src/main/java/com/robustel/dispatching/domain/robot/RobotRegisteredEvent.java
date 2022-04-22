@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.yeung.api.AbstractEvent;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -15,10 +16,10 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class RobotRegisteredEvent extends AbstractEvent {
-    private final RobotId robotId;
-    private final Map<String, Object> params;
+    private RobotId robotId;
+    private Map<String, Serializable> params;
 
-    public RobotRegisteredEvent(RobotId robotId, Map<String, Object> params) {
+    public RobotRegisteredEvent(RobotId robotId, Map<String, Serializable> params) {
         super();
         this.robotId = robotId;
         this.params = params;

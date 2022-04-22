@@ -63,7 +63,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         //先出后进
         noticeRobotToLeave(floor);
         noticeRobotToEnter(floor, direction);
-        if (this.notified.size() == 0) {
+        if (this.notified.isEmpty()) {
             DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
         }
     }
@@ -111,7 +111,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
 
     private void respondFrom(RobotId robotId) {
         this.notified.remove(robotId);
-        if (this.notified.size() == 0) {
+        if (this.notified.isEmpty()) {
             DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
         }
     }
