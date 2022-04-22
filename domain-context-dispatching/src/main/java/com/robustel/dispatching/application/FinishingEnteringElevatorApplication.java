@@ -31,7 +31,7 @@ public class FinishingEnteringElevatorApplication {
         Robot robot = robotRepository.findById(robotId).orElseThrow(
                 () -> new RobotNotFoundException(robotId)
         );
-        robot.enter(elevator);
+        elevator.enter(robot);
         robotRepository.save(robot);
         elevatorRepository.save(elevator);
     }

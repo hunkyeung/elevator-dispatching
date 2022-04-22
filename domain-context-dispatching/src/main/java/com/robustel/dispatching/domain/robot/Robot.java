@@ -38,24 +38,18 @@ public class Robot extends AbstractEntity<RobotId> {
         this.whiteList = whiteList;
     }
 
-    public void leave(Elevator elevator) {
-        elevator.leave(getId());
-        this.leavingTime = Instant.now();
-        log.info("机器人【{}】已经出电梯【{}】", getId(), elevator.getId());
-    }
-
-    public void enter(Elevator elevator) {
-        if (!canEnter(elevator.getId())) {
-            throw new RobotNotAllowedEnterException(getId(), elevator.getId());
-        }
-        elevator.enter(getId());
+    public void enter(ElevatorId elevatorId) {
         reset();
         this.enteringTime = Instant.now();
-        log.info("机器人【{}】已经进电梯【{}】", getId(), elevator.getId());
+        log.info("机器人【{}】已经进电梯【{}】", getId(), elevatorId);
     }
 
-    public boolean canEnter(ElevatorId elevatorId) {
-        return this.whiteList.contains(elevatorId);
+    public void leave(ElevatorId elevatorId) {
+        if (this.enteringTime == null) {
+            throw new RobotNotEnterElevatorException(getId(), elevatorId);
+        }
+        this.leavingTime = Instant.now();
+        log.info("机器人【{}】已经出电梯【{}】", getId(), elevatorId);
     }
 
     //reset the entering time and leaving time
@@ -74,4 +68,5 @@ public class Robot extends AbstractEntity<RobotId> {
         elevator.unbind(getId());
         this.whiteList.remove(elevator.getId());
     }
+
 }

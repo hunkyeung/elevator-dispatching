@@ -15,7 +15,7 @@ public interface DispatchingStrategyService {
 
     class NoElevatorAvailableException extends DomainException {
         public NoElevatorAvailableException(RobotId robotId) {
-            super("No elevator available for the robot[" + robotId.toString() + "]. ");
+            super("未找到合适的电梯给机器人【" + robotId + "】，请确保该机器人已经绑定过电梯，且绑定的电梯处于可用状态");
         }
     }
 }

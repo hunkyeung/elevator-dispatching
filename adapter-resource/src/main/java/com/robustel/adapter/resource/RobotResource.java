@@ -46,8 +46,8 @@ public class RobotResource {
         finishingLeavingElevatorApplication.doFinishLeavingElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
     }
 
-    @PutMapping("/elevators/{elevatorId}/releasing")
-    public void releaseDoor(@PathVariable String elevatorId) {
-        releasingDoorApplication.doReleaseDoor(ElevatorId.of(elevatorId));
+    @PutMapping("/robots/{robotId}/releasing")
+    public void releaseDoor(@PathVariable String robotId, @RequestParam String elevatorId) {
+        releasingDoorApplication.doReleaseDoor(RobotId.of(robotId), ElevatorId.of(elevatorId));
     }
 }

@@ -34,7 +34,6 @@ public class RandomDispatchingStrategyService implements DispatchingStrategyServ
                 elevator -> elevator.isValid(from, to)
         ).collect(Collectors.toList());
         if (elevatorList.isEmpty()) {
-            log.error("No elevator available. ");
             throw new NoElevatorAvailableException(robot.getId());
         }
         Elevator elevator = elevatorList.get(new Random().nextInt(elevatorList.size()));

@@ -9,6 +9,6 @@ import org.yeung.api.DomainException;
  */
 public class RobotNotAllowedEnterException extends DomainException {
     public RobotNotAllowedEnterException(RobotId robotId, ElevatorId elevatorId) {
-        super("Robot[" + robotId.toString() + "] is not allowed to enter the elevator[" + elevatorId.toString() + "]. ");
+        super("未找不到该机器人【" + robotId + "】与电梯【" + elevatorId + "】绑定关系");
     }
 }

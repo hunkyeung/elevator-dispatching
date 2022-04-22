@@ -10,6 +10,6 @@ import org.yeung.api.DomainException;
 @ToString(callSuper = true)
 public class RobotNotFoundException extends DomainException {
     public RobotNotFoundException(RobotId robotId) {
-        super("Robot[" + robotId.toString() + "] could not be found. ");
+        super("找不到该机器人【" + robotId + "】");
     }
 }

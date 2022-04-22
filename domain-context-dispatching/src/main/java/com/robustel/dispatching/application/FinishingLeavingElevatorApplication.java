@@ -37,7 +37,7 @@ public class FinishingLeavingElevatorApplication {
         Robot robot = robotRepository.findById(robotId).orElseThrow(
                 () -> new RobotNotFoundException(robotId)
         );
-        robot.leave(elevator);
+        elevator.leave(robot);
         robotRepository.save(robot);
         elevatorRepository.save(elevator);
     }

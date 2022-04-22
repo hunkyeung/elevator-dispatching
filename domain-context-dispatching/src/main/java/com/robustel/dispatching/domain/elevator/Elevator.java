@@ -1,6 +1,8 @@
 package com.robustel.dispatching.domain.elevator;
 
+import com.robustel.dispatching.domain.robot.Robot;
 import com.robustel.dispatching.domain.robot.RobotId;
+import com.robustel.dispatching.domain.robot.RobotNotAllowedEnterException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,9 +27,10 @@ public class Elevator extends AbstractEntity<ElevatorId> {
     private Map<String, Request> calledRequests;//招唤中的请求
     private Map<String, Request> tookRequests;//乘梯中请求
     private Set<RobotId> whiteList; //
+    private Set<RobotId> notified; //当目标楼层到达时，已通知的机器人会进入该集合。机器响应（包括进梯、出梯或者主动释放开门）都会移出。集合为0时，释放开门
 
     public Elevator(ElevatorId id, Floor highest, Floor lowest, State state, Map<String, Request> calledRequests, Map<String, Request> tookRequests,
-                    Set<RobotId> whiteList) {
+                    Set<RobotId> whiteList, Set<RobotId> notified) {
         super(id);
         this.highest = highest;
         this.lowest = lowest;
@@ -35,13 +38,15 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         this.calledRequests = calledRequests;
         this.tookRequests = tookRequests;
         this.whiteList = whiteList;
+        this.notified = notified;
     }
 
     public static Elevator of(ElevatorId elevatorId, Floor highest, Floor lowest) {
-        return new Elevator(elevatorId, highest, lowest, State.IN_SERVICE, new HashMap<>(), new HashMap<>(), new HashSet<>(0));
+        return new Elevator(elevatorId, highest, lowest, State.IN_SERVICE, new HashMap<>(), new HashMap<>(),
+                new HashSet<>(0), new HashSet<>(0));
     }
 
-    public void response(Request request) {
+    public void accept(Request request) {
         if (State.OUT_OF_SERVICE.equals(this.state)) {
             throw new ElevatorOutOfServiceException(getId());
         }
@@ -61,9 +66,9 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         if (request == null) {
             log.warn("找不到该机器【{}】乘梯【{}】请求", robotId, getId());
             throw new RequestNotFoundException(robotId, getId());
-        } else {
-            this.tookRequests.put(request.getRobotId().getValue(), request);
         }
+        this.tookRequests.put(request.getRobotId().getValue(), request);
+        respondFrom(robotId);
     }
 
     public void leave(RobotId robotId) {
@@ -71,9 +76,9 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         if (request == null) {
             log.warn("找不到该机器【{}】乘梯【{}】请求", robotId, getId());
             throw new RequestNotFoundException(robotId, getId());
-        } else {
-            DomainEventPublisher.publish(new RobotLeftEvent(getId(), request));
         }
+        DomainEventPublisher.publish(new RobotLeftEvent(getId(), request));
+        respondFrom(robotId);
     }
 
     // 当电梯到达时，通知相关机器人进出电梯
@@ -81,6 +86,9 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         //先出后进
         noticeRobotToLeave(floor);
         noticeRobotToEnter(floor, direction);
+        if (this.notified.size() == 0) {
+            DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
+        }
     }
 
     private void noticeRobotToEnter(Floor floor, Direction direction) {
@@ -89,8 +97,10 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         log.info("正在通知机器人进电梯【{}】...", getId());
         Optional.ofNullable(this.calledRequests).orElse(new HashMap<>()).values().forEach(
                 request -> {
-                    if (request.matchFrom(floor, direction))
+                    if (request.matchFrom(floor, direction)) {
                         DomainEventPublisher.publish(new ElevatorArrivedEvent(request.getRobotId(), true));
+                        this.notified.add(request.getRobotId());
+                    }
                 }
         );
     }
@@ -100,8 +110,10 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         log.info("正在通知机器人出电梯【{}】...", getId());
         Optional.ofNullable(this.tookRequests).orElse(new HashMap<>()).values().forEach(
                 request -> {
-                    if (request.matchTo(floor))
+                    if (request.matchTo(floor)) {
                         DomainEventPublisher.publish(new ElevatorArrivedEvent(request.getRobotId(), false));
+                        this.notified.add(request.getRobotId());
+                    }
                 }
         );
     }
@@ -110,16 +122,62 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         return Arrays.stream(floors).anyMatch(floor -> floor.compareTo(lowest) >= 0 && floor.compareTo(highest) <= 0);
     }
 
-    public void release() {
+    public void release(RobotId robotId) {
         //todo 当出现一机多梯时，不能简单释放开门，需要接收到所以通知到的机器人返回释放开门后，方可真正的释放
-        DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
+        Request request = this.calledRequests.remove(robotId.getValue());
+        if (request != null) {//当机器人主动释放电梯时，表示机器人乘梯失败。如果需要继续乘梯，需重新招唤电梯
+            respondFrom(robotId);
+        } else {
+            log.warn("找不到该机器人【" + robotId + "】搭乘此电梯【" + getId() + "】，系统将忽略该请求");
+        }
+    }
+
+    private void respondFrom(RobotId robotId) {
+        this.notified.remove(robotId);
+        if (this.notified.size() == 0) {
+            DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
+        }
     }
 
     public void unbind(RobotId robotId) {
-        this.whiteList.remove(robotId);
+        if (!this.whiteList.remove(robotId)) {
+            log.warn("机器人【{}】与该电梯【{}】未存在绑定关系", robotId, getId());
+        }
+
     }
 
     public void bind(RobotId robotId) {
-        this.whiteList.add(robotId);
+        if (!this.whiteList.add(robotId)) {
+            log.warn("机器人【{}】已经绑定到这台电梯【{}】", robotId, getId());
+        }
+    }
+
+    public void enter(Robot robot) {
+        if (!canEnter(robot.getId())) {
+            throw new RobotNotAllowedEnterException(robot.getId(), getId());
+        }
+        Request request = this.calledRequests.remove(robot.getId().getValue());
+        if (request == null) {
+            log.warn("找不到该机器【{}】乘梯【{}】请求", robot.getId(), getId());
+            throw new RequestNotFoundException(robot.getId(), getId());
+        }
+        this.tookRequests.put(request.getRobotId().getValue(), request);
+        robot.enter(getId());
+        respondFrom(robot.getId());
+    }
+
+    public boolean canEnter(RobotId robotId) {
+        return this.whiteList.contains(robotId);
+    }
+
+    public void leave(Robot robot) {
+        Request request = this.tookRequests.remove(robot.getId().getValue());
+        if (request == null) {
+            log.warn("找不到该机器【{}】乘梯【{}】请求", robot.getId(), getId());
+            throw new RequestNotFoundException(robot.getId(), getId());
+        }
+        robot.leave(getId());
+        DomainEventPublisher.publish(new RobotLeftEvent(getId(), request));
+        respondFrom(robot.getId());
     }
 }

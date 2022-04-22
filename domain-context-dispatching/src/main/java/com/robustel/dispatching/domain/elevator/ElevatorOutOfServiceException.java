@@ -11,6 +11,6 @@ import org.yeung.api.DomainException;
 public class ElevatorOutOfServiceException extends DomainException {
 
     public ElevatorOutOfServiceException(ElevatorId elevatorId) {
-        super("Elevator[" + elevatorId.toString() + "] is out of service. ");
+        super("该电梯【" + elevatorId + "】不可用");
     }
 }

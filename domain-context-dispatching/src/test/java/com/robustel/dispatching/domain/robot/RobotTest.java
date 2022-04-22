@@ -2,6 +2,7 @@ package com.robustel.dispatching.domain.robot;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorId;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -20,39 +21,26 @@ class RobotTest {
 
     @Test
     void Given_Normal_When_Enter_Then_EnteringTimeWasSet() {
-        Set<ElevatorId> elevatorIdSet = new HashSet<>();
-        ElevatorId elevatorId = ElevatorId.of("1");
-        elevatorIdSet.add(elevatorId);
-        Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), null, null, elevatorIdSet);
-        assertNull(robot.getEnteringTime());
-        Elevator elevator = mock(Elevator.class);
-        when(elevator.getId()).thenReturn(elevatorId);
-        robot.enter(elevator);
+        Robot robot = new Robot(RobotId.of("1"));
+        robot.enter(ElevatorId.of("2"));
         assertNotNull(robot.getEnteringTime());
-        verify(elevator).enter(robot.getId());
+        assertNull(robot.getLeavingTime());
         //todo 需要补充验证设置的时间与当前时间误差在许可范围
     }
 
     @Test
     void Given_RobotEnteringTheElevator_When_LeaveTheElevator_Then_LeavingTimeWasSet() {
-        Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), Instant.now(), null, new HashSet<>());
-        assertNotNull(robot.getEnteringTime());
-        assertNull(robot.getLeavingTime());
-        Elevator elevator = mock(Elevator.class);
-        robot.leave(elevator);
-        verify(elevator).leave(robot.getId());
+        Robot robot = new Robot(RobotId.of("1"), Instant.now(), null, new HashSet<>());
+        robot.leave(ElevatorId.of("2"));
         assertNotNull(robot.getLeavingTime());
         //todo 需要补充验证设置的时间与当前时间误差在许可范围
     }
 
     @Test
-    void Given_RobotNotEnteringTheElevator_When_LeaveTheElevator_Then_ElevatorLeaveInvoked() {
-        Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), null, null, new HashSet<>());
-        assertNull(robot.getEnteringTime());
-        assertNull(robot.getLeavingTime());
-        Elevator elevator = mock(Elevator.class);
-        robot.leave(elevator);
-        verify(elevator).leave(robot.getId());
+    void Given_RobotNotEnterTheElevator_When_LeaveTheElevator_Then_ThrowRobotNotEnterElevatorException() {
+        Robot robot = new Robot(RobotId.of("1"));
+        Assertions.assertThrows(RobotNotEnterElevatorException.class,
+                () -> robot.leave(ElevatorId.of("2")));
     }
 
     @Test

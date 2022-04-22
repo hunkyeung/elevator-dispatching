@@ -38,7 +38,7 @@ public class TakingElevatorApplication {
         Floor to = command.getTo();
         Elevator elevator = dispatchingService.selectElevator(robot, from, to);
         Request request = Request.of(robot.getId(), from, to);
-        elevator.response(request);
+        elevator.accept(request);
         elevatorRepository.save(elevator);
         return elevator.getId().getValue();
     }

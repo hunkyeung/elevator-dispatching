@@ -4,6 +4,7 @@ import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorId;
 import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
+import com.robustel.dispatching.domain.robot.RobotId;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,11 +19,11 @@ public class ReleasingDoorApplication {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public void doReleaseDoor(ElevatorId elevatorId) {
+    public void doReleaseDoor(RobotId robotId, ElevatorId elevatorId) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        elevator.release();
+        elevator.release(robotId);
         elevatorRepository.save(elevator);
     }
 }

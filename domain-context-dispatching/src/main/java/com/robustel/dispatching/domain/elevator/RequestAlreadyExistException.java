@@ -11,6 +11,6 @@ import org.yeung.api.DomainException;
 @ToString(callSuper = true)
 public class RequestAlreadyExistException extends DomainException {
     public RequestAlreadyExistException(RobotId robotId, ElevatorId elevatorId) {
-        super("Request that robot[" + robotId.toString() + "] takes the elevator[" + elevatorId.toString() + "] already exists. ");
+        super("已经存在该机器人【" + robotId + "】搭乘电梯【" + elevatorId + "】请求");
     }
 }

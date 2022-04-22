@@ -1,8 +1,12 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.domain.elevator.*;
+import com.robustel.dispatching.domain.elevator.ElevatorDoorReleasedEvent;
+import com.robustel.dispatching.domain.elevator.ElevatorId;
+import com.robustel.dispatching.domain.elevator.Request;
+import com.robustel.dispatching.domain.elevator.RequestSummitedEvent;
 import com.robustel.thing.application.ExecutingInstructionApplication;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -13,6 +17,7 @@ import java.util.Map;
  * @date 2022/4/12
  */
 @Component
+@Slf4j
 public class ElevatorController {
     private final ExecutingInstructionApplication executingInstructionApplication;
 
@@ -27,12 +32,14 @@ public class ElevatorController {
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId.getValue()),
                 "take", params);
+        log.info("机器人【{}】想搭乘电梯【{}】从{}楼到{}楼", request.getRobotId(), elevatorId, request.getFrom().getValue(), request.getTo().getValue());
     }
 
     public void release(ElevatorId elevatorId) {
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId.getValue()),
                 "release", new HashMap<>());
+        log.info("释放电梯【{}】开门按钮", elevatorId);
     }
 
     @Subscribe
@@ -42,11 +49,6 @@ public class ElevatorController {
 
     @Subscribe
     public void listenOn(ElevatorDoorReleasedEvent event) {
-        release(event.getElevatorId());
-    }
-
-    @Subscribe
-    public void listenOn(RobotLeftEvent event) {
         release(event.getElevatorId());
     }
 }

@@ -11,6 +11,6 @@ import org.yeung.api.DomainException;
 @ToString(callSuper = true)
 public class RequestNotFoundException extends DomainException {
     public RequestNotFoundException(RobotId robotId, ElevatorId elevatorId) {
-        super("Request that robot[" + robotId.toString() + "] takes the elevator[" + elevatorId.toString() + "] could not be found. ");
+        super("找不到该机器人【" + robotId + "】乘梯【" + elevatorId + "】请求");
     }
 }

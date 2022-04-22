@@ -11,6 +11,6 @@ import org.yeung.api.DomainException;
 public class ElevatorNotFoundException extends DomainException {
 
     public ElevatorNotFoundException(ElevatorId elevatorId) {
-        super("Elevator[" + elevatorId.toString() + "] could not be found. ");
+        super("找不到该电梯【" + elevatorId + "】");
     }
 }
