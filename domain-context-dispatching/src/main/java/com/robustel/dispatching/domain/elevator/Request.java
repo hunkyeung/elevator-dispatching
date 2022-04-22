@@ -43,21 +43,8 @@ public class Request implements ValueObject {
         return new Request(robotId, Instant.now(), from, to);
     }
 
-    public boolean matchFrom(Floor floor, Direction direction) {
-        boolean isMatched = direction().equals(direction) && this.from.equals(floor);
-        log.debug("匹配乘梯请求【机器人：{},出发楼层：{},目标楼层：{}】与电梯状态【楼层：{},方向：{}】，结果为{}",
-                getRobotId(), getFrom(), getTo(), floor, direction, true);
-        return isMatched;
-    }
-
-    private Direction direction() {
-        Direction direction;
-        if (this.from.compareTo(this.to) < 0) {
-            direction = Direction.UP;
-        } else {
-            direction = Direction.DOWN;
-        }
-        return direction;
+    public boolean matchFrom(Floor floor) {
+        return this.from.equals(floor);
     }
 
     public boolean matchTo(Floor floor) {

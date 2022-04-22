@@ -15,11 +15,11 @@ public class ArrivingFloorApplication {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public void doArrive(ElevatorId elevatorId, Floor floor, Direction direction) {
+    public void doArrive(ElevatorId elevatorId, Floor floor) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        elevator.arrive(floor, direction);
+        elevator.arrive(floor);
         elevatorRepository.save(elevator);
     }
 }

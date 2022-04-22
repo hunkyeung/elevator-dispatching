@@ -59,22 +59,23 @@ public class Elevator extends AbstractEntity<ElevatorId> {
     }
 
     // 当电梯到达时，通知相关机器人进出电梯
-    public void arrive(Floor floor, Direction direction) {
+    public void arrive(Floor floor) {
         //先出后进
         noticeRobotToLeave(floor);
-        noticeRobotToEnter(floor, direction);
+        noticeRobotToEnter(floor);
         if (this.notified.isEmpty()) {
             DomainEventPublisher.publish(new ElevatorDoorReleasedEvent(getId()));
         }
     }
 
-    private void noticeRobotToEnter(Floor floor, Direction direction) {
+    private void noticeRobotToEnter(Floor floor) {
         //通知机器人进梯
         //todo 后续针对多机一梯，多机多梯时，不能通知所有电梯，而是根据排队通知，如果允许一次多机乘梯时，还需要考虑先进后出，后进进先出原则
         log.info("正在通知机器人进电梯【{}】...", getId());
         Optional.ofNullable(this.calledRequests).orElse(new HashMap<>()).values().forEach(
                 request -> {
-                    if (request.matchFrom(floor, direction)) {
+//                    if (request.matchFrom(floor, direction)) {
+                    if (request.matchFrom(floor)) {
                         DomainEventPublisher.publish(new ElevatorArrivedEvent(request.getRobotId(), true));
                         this.notified.add(request.getRobotId());
                     }

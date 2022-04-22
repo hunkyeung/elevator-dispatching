@@ -12,6 +12,7 @@ import com.robustel.thing.domain.thing_model.ChannelType;
 import com.robustel.thing.domain.thing_model.TriggerAndEdgeKey;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +42,7 @@ public class RegisteringThingService {
         registerDirectThing(thingId, event.getParams());
     }
 
-    public void registerIndirectThing(String thingId, Map<String, Object> params) {
+    public void registerIndirectThing(String thingId, Map<String, Serializable> params) {
         RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
                 (String) params.get("area"), (ChannelType) params.get("channelType"), (Set<Tag>) params.get("tags")
                 , (Set<CloudProperty>) params.get("properties"), (Set<TriggerAndEdgeKey>) params.get("triggerAndEdgeKeys")
@@ -49,7 +50,7 @@ public class RegisteringThingService {
         registeringIndirectThingApplication.doRegisterIndirectThing(command);
     }
 
-    public void registerDirectThing(String thingId, Map<String, Object> params) {
+    public void registerDirectThing(String thingId, Map<String, Serializable> params) {
         RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
                 (String) params.get("area"), (ChannelType) params.get("channelType"), (Set<Tag>) params.get("tags")
                 , (Set<CloudProperty>) params.get("properties"), (Set<TriggerAndEdgeKey>) params.get("triggerAndEdgeKeys")
