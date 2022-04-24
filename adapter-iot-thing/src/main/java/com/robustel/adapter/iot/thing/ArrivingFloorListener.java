@@ -18,7 +18,7 @@ import java.util.Map;
 @Component
 @Slf4j
 public class ArrivingFloorListener {
-    @Value("${elevator-dispatching.app-name}")
+    @Value("${robustel.elevator-dispatching.app-name}")
     private String appName;
 
     private final ArrivingFloorApplication arrivingFloorApplication;

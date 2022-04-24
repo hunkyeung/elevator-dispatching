@@ -54,7 +54,7 @@ class RequestTest {
     @Test
     void Given_From2_To10_Request_And_10floor_When_MatchTo_Then_ReturnTrue() {
         Request request = Request.of(RobotId.of("robotId"), Floor.of(2), Floor.of(10));
-        assertTrue(request.matchFrom(Floor.of(10)));
+        assertTrue(request.matchTo(Floor.of(10)));
     }
 
 }

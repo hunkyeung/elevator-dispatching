@@ -1,16 +1,15 @@
 package com.robustel.adapter.persistence.mongodb.core;
 
-import org.aspectj.lang.annotation.Aspect;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.interceptor.*;
 
 import java.util.Collections;
@@ -21,9 +20,8 @@ import java.util.Map;
  * @author YangXuehong
  * @date 2021/8/12
  */
-//@Aspect
-//@Configuration
-//@EnableTransactionManagement
+@ConditionalOnProperty(name = "robustel.mongodb.transactionEnabled", havingValue = "true")
+@Configuration
 public class MongoTransactionConfig {
 
     /**
