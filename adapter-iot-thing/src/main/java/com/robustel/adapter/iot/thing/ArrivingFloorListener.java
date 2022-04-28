@@ -32,7 +32,7 @@ public class ArrivingFloorListener {
         if (event.getFact().get("uri").equals("." + appName + ".arriving_event")) {
             Map properties = ((Map) event.getFact().get("properties"));
             int floor = Integer.valueOf((String) properties.get("floor"));
-            log.info("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
+            log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
             arrivingFloorApplication.doArrive(ElevatorId.of(event.getInstanceId()), Floor.of(floor));
         }
     }

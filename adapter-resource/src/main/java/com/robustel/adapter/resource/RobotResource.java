@@ -37,17 +37,20 @@ public class RobotResource {
     }
 
     @PutMapping("/robots/{robotId}/finishing-entering")
-    public void enterElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
+    public RestResponse<Void> enterElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
         finishingEnteringElevatorApplication.doFinishEnteringElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+        return RestResponse.ofSuccessWithoutResult();
     }
 
     @PutMapping("/robots/{robotId}/finishing-leaving")
-    public void leaveElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
+    public RestResponse<Void> leaveElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
         finishingLeavingElevatorApplication.doFinishLeavingElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+        return RestResponse.ofSuccessWithoutResult();
     }
 
     @PutMapping("/robots/{robotId}/releasing")
-    public void releaseDoor(@PathVariable String robotId, @RequestParam String elevatorId) {
+    public RestResponse<Void> releaseDoor(@PathVariable String robotId, @RequestParam String elevatorId) {
         releasingDoorApplication.doReleaseDoor(RobotId.of(robotId), ElevatorId.of(elevatorId));
+        return RestResponse.ofSuccessWithoutResult();
     }
 }

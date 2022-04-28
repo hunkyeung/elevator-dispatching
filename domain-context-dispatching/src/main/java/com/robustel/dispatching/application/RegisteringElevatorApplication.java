@@ -23,7 +23,7 @@ public class RegisteringElevatorApplication {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public ElevatorId doRegister(Command command) {
+    public String doRegister(Command command) {
         ElevatorId elevatorId;
         if (StringUtils.isBlank(command.getElevatorId())) {
             elevatorId = ElevatorId.of(UUID.randomUUID().toString());
@@ -36,7 +36,7 @@ public class RegisteringElevatorApplication {
         params.put("modelId", command.getModelId());
         params.put("sn", command.getSn());
         DomainEventPublisher.publish(new ElevatorRegisteredEvent(elevatorId, params));
-        return elevator.getId();
+        return elevator.getId().getValue();
     }
 
     @Getter

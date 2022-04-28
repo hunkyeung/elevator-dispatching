@@ -23,12 +23,12 @@ public class RobotController {
     }
 
     public void enter(RobotId robotId) {
-        log.info("请机器人【{}】进梯", robotId);
+        log.debug("请机器人【{}】进梯", robotId);
         executingInstructionApplication.doExecuteInstruction(robotId.getValue(), "enter", new HashMap<>());
     }
 
     public void leave(RobotId robotId) {
-        log.info("请机器人【{}】出梯", robotId);
+        log.debug("请机器人【{}】出梯", robotId);
         executingInstructionApplication.doExecuteInstruction(robotId.getValue(), "leave", new HashMap<>());
     }
 

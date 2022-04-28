@@ -41,7 +41,7 @@ public class Robot extends AbstractEntity<RobotId> {
     public void enter(ElevatorId elevatorId) {
         reset();
         this.enteringTime = Instant.now();
-        log.info("机器人【{}】已经进电梯【{}】", getId(), elevatorId);
+        log.debug("机器人【{}】已经进电梯【{}】", getId(), elevatorId);
     }
 
     public void leave(ElevatorId elevatorId) {
@@ -49,12 +49,12 @@ public class Robot extends AbstractEntity<RobotId> {
             throw new RobotNotEnterElevatorException(getId(), elevatorId);
         }
         this.leavingTime = Instant.now();
-        log.info("机器人【{}】已经出电梯【{}】", getId(), elevatorId);
+        log.debug("机器人【{}】已经出电梯【{}】", getId(), elevatorId);
     }
 
     //reset the entering time and leaving time
     private void reset() {
-        log.info("重置机器人【{}】状态：入梯时间和出梯时间", getId());
+        log.debug("重置机器人【{}】状态：入梯时间和出梯时间", getId());
         this.enteringTime = null;
         this.leavingTime = null;
     }

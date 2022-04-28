@@ -54,7 +54,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
             throw new RequestAlreadyExistException(request.getRobotId(), getId());
         }
         this.calledRequests.put(request.getRobotId().getValue(), request);
-        log.info("等待调度的乘梯请求:{}", this.calledRequests);
+        log.debug("等待调度的乘梯请求:{}", this.calledRequests);
         DomainEventPublisher.publish(new RequestSummitedEvent(getId(), request));
     }
 
@@ -71,7 +71,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
     private void noticeRobotToEnter(Floor floor) {
         //通知机器人进梯
         //todo 后续针对多机一梯，多机多梯时，不能通知所有电梯，而是根据排队通知，如果允许一次多机乘梯时，还需要考虑先进后出，后进进先出原则
-        log.info("正在通知机器人进电梯【{}】...", getId());
+        log.debug("正在通知机器人进电梯【{}】...", getId());
         Optional.ofNullable(this.calledRequests).orElse(new HashMap<>()).values().forEach(
                 request -> {
 //                    if (request.matchFrom(floor, direction)) {
@@ -85,7 +85,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
 
     private void noticeRobotToLeave(Floor floor) {
         //通知机器人出梯
-        log.info("正在通知机器人出电梯【{}】...", getId());
+        log.debug("正在通知机器人出电梯【{}】...", getId());
         Optional.ofNullable(this.tookRequests).orElse(new HashMap<>()).values().forEach(
                 request -> {
                     if (request.matchTo(floor)) {

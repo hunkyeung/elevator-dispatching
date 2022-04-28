@@ -13,7 +13,7 @@ spring:
     name: ${APPLICATION_NAME:dispatching}
 logging:
   level:
-    com.robustel: info
+    com.robustel: debug
 server:
   port: 443
   ssl:
@@ -24,8 +24,7 @@ server:
     key-password: 123456
     key-store-password: 123456
 robustel:
-  mongo:
-    transactionEnabled: ${MONGO_TRANSACTION_ENABLED:false}
+  security-key: eb310a33-a93c-4f07-9b23-240579c7c270
   elevator-dispatching:
     app-name: e2c_s_ladder_control_rs485
   uid:

@@ -3,7 +3,6 @@ package com.robustel.adapter.persistence.mongodb.core;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
@@ -20,7 +19,6 @@ import java.util.Map;
  * @author YangXuehong
  * @date 2021/8/12
  */
-@ConditionalOnProperty(name = "robustel.mongodb.transactionEnabled", havingValue = "true")
 @Configuration
 public class MongoTransactionConfig {
 
