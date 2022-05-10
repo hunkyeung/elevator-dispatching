@@ -32,13 +32,13 @@ public class RegisteringThingService {
 
     @Subscribe
     public void registerElevator(ElevatorRegisteredEvent event) {
-        String thingId = String.valueOf(event.getElevatorId().getValue());
+        String thingId = String.valueOf(event.getElevatorId().value());
         registerIndirectThing(thingId, event.getParams());
     }
 
     @Subscribe
     public void registerRobot(RobotRegisteredEvent event) {
-        String thingId = String.valueOf(event.getRobotId().getValue());
+        String thingId = String.valueOf(event.getRobotId().value());
         registerDirectThing(thingId, event.getParams());
     }
 

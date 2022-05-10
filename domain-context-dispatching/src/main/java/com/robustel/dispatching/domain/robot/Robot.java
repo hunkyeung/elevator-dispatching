@@ -1,5 +1,6 @@
 package com.robustel.dispatching.domain.robot;
 
+import com.robustel.ddd.core.AbstractEntity;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorId;
 import lombok.EqualsAndHashCode;
@@ -7,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.yeung.api.AbstractEntity;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -41,32 +41,32 @@ public class Robot extends AbstractEntity<RobotId> {
     public void enter(ElevatorId elevatorId) {
         reset();
         this.enteringTime = Instant.now();
-        log.debug("机器人【{}】已经进电梯【{}】", getId(), elevatorId);
+        log.debug("机器人【{}】已经进电梯【{}】", id(), elevatorId);
     }
 
     public void leave(ElevatorId elevatorId) {
         if (this.enteringTime == null) {
-            throw new RobotNotEnterElevatorException(getId(), elevatorId);
+            throw new RobotNotEnterElevatorException(id(), elevatorId);
         }
         this.leavingTime = Instant.now();
-        log.debug("机器人【{}】已经出电梯【{}】", getId(), elevatorId);
+        log.debug("机器人【{}】已经出电梯【{}】", id(), elevatorId);
     }
 
     //reset the entering time and leaving time
     private void reset() {
-        log.debug("重置机器人【{}】状态：入梯时间和出梯时间", getId());
+        log.debug("重置机器人【{}】状态：入梯时间和出梯时间", id());
         this.enteringTime = null;
         this.leavingTime = null;
     }
 
     public void bind(Elevator elevator) {
-        elevator.bind(getId());
-        this.whiteList.add(elevator.getId());
+        elevator.bind(id());
+        this.whiteList.add(elevator.id());
     }
 
     public void unbind(Elevator elevator) {
-        elevator.unbind(getId());
-        this.whiteList.remove(elevator.getId());
+        elevator.unbind(id());
+        this.whiteList.remove(elevator.id());
     }
 
 }

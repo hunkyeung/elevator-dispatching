@@ -1,11 +1,11 @@
 package com.robustel.dispatching.domain.elevator;
 
+import com.robustel.ddd.core.ValueObject;
 import com.robustel.dispatching.domain.robot.RobotId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.yeung.api.ValueObject;
 
 import java.time.Instant;
 

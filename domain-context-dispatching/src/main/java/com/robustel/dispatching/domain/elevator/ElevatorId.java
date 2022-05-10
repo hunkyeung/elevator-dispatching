@@ -1,6 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
-import org.yeung.api.AbstractIdentity;
+import com.robustel.ddd.core.AbstractIdentity;
 
 /**
  * @author YangXuehong

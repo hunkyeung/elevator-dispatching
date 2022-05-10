@@ -37,10 +37,10 @@ public class TakingElevatorApplication {
         Floor from = command.getFrom();
         Floor to = command.getTo();
         Elevator elevator = dispatchingService.selectElevator(robot, from, to);
-        Request request = Request.of(robot.getId(), from, to);
+        Request request = Request.of(robot.id(), from, to);
         elevator.accept(request);
         elevatorRepository.save(elevator);
-        return elevator.getId().getValue();
+        return elevator.id().value();
     }
 
     @Getter

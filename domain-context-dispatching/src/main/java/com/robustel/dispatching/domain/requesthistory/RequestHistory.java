@@ -1,11 +1,11 @@
 package com.robustel.dispatching.domain.requesthistory;
 
+import com.robustel.ddd.core.AbstractEntity;
 import com.robustel.dispatching.domain.elevator.ElevatorId;
 import com.robustel.dispatching.domain.elevator.Request;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import org.yeung.api.AbstractEntity;
 
 import java.time.Instant;
 

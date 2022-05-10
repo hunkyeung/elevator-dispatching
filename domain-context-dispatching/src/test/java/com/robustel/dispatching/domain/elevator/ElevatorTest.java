@@ -1,14 +1,17 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.google.common.eventbus.Subscribe;
+import com.robustel.adapter.ddd.service.idgenerator.snowflake.SnowFlakeUidGenerator;
+import com.robustel.adapter.ddd.service.publisher.guava.GuavaEventBusPublisher;
+import com.robustel.ddd.service.EventPublisher;
+import com.robustel.ddd.service.ServiceLocator;
+import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.robot.Robot;
 import com.robustel.dispatching.domain.robot.RobotId;
 import com.robustel.dispatching.domain.robot.RobotNotAllowedEnterException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.yeung.api.util.ServiceLocator;
-import org.yeung.core.EventPublisher;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,8 +33,30 @@ class ElevatorTest {
     private Map<String, Request> took;
     private Set<RobotId> notified;
 
+    private void initServiceLocator() {
+        ServiceLocator.setRegistry(new ServiceLocator.ServiceRegistry() {
+            private static Map<Class, Object> service = new HashMap<>();
+
+            static {
+                service.put(UidGenerator.class, new SnowFlakeUidGenerator(1L, 30L));
+                service.put(EventPublisher.class, new GuavaEventBusPublisher());
+            }
+
+            @Override
+            public <T> T getService(Class<T> aClass) {
+                return (T) service.get(aClass);
+            }
+
+            @Override
+            public <T> T getBean(String s, Class<T> aClass) {
+                throw new IllegalStateException("Not support!");
+            }
+        });
+    }
+
     @BeforeEach
     void init() {
+        initServiceLocator();
         Set<RobotId> whiteList = new HashSet<>();
         RobotId robotId = RobotId.of("1");
         whiteList.add(robotId);
@@ -75,14 +100,14 @@ class ElevatorTest {
         Elevator elevator = Elevator.of(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1));
         Request request = Request.of(RobotId.of("1"), Floor.of(1), Floor.of(2));
         elevator.accept(request);
-        assertEquals(request, elevator.getCalledRequests().get(RobotId.of("1").getValue()));
+        assertEquals(request, elevator.getCalledRequests().get(RobotId.of("1").value()));
     }
 
     @Test
     void Given_RobotNotInWhiteList_When_Enter_Then_ThrowsRobotNotAllowedEnterException() {
         RobotId robotId = RobotId.of("2");
         Robot robot = mock(Robot.class);
-        when(robot.getId()).thenReturn(robotId);
+        when(robot.id()).thenReturn(robotId);
         Assertions.assertThrows(RobotNotAllowedEnterException.class,
                 () -> elevator.enter(robot));
 
@@ -92,7 +117,7 @@ class ElevatorTest {
     void Given_RobotWithoutTakeElevator_When_Enter_Then_ThrowsRequestNotFoundException() {
         RobotId robotId = RobotId.of("1");
         Robot robot = mock(Robot.class);
-        when(robot.getId()).thenReturn(robotId);
+        when(robot.id()).thenReturn(robotId);
         Assertions.assertThrows(RequestNotFoundException.class,
                 () -> elevator.enter(robot));
 
@@ -102,9 +127,9 @@ class ElevatorTest {
     void Given_RobotTakeElevator_When_Enter_Then_ThrowsRequestNotFoundException() {
         RobotId robotId = RobotId.of("1");
         Robot robot = mock(Robot.class);
-        when(robot.getId()).thenReturn(robotId);
+        when(robot.id()).thenReturn(robotId);
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        called.put(request.getRobotId().getValue(), request);
+        called.put(request.getRobotId().value(), request);
         notified.add(robotId);
         elevator.enter(robot);
         assertTrue(took.containsValue(request));
@@ -117,7 +142,7 @@ class ElevatorTest {
     void Given_RobotNotInElevator_When_Leave_Then_ThrowsRequestNotFoundException() {
         RobotId robotId = RobotId.of("1");
         Robot robot = mock(Robot.class);
-        when(robot.getId()).thenReturn(robotId);
+        when(robot.id()).thenReturn(robotId);
         Assertions.assertThrows(RequestNotFoundException.class,
                 () -> elevator.leave(robot));
     }
@@ -126,9 +151,9 @@ class ElevatorTest {
     void Given_RobotInElevator_When_Leave_Then_Success() {
         RobotId robotId = RobotId.of("1");
         Robot robot = mock(Robot.class);
-        when(robot.getId()).thenReturn(robotId);
+        when(robot.id()).thenReturn(robotId);
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        took.put(request.getRobotId().getValue(), request);
+        took.put(request.getRobotId().value(), request);
         notified.add(robotId);
         elevator.leave(robot);
         assertFalse(took.containsValue(request));
@@ -158,10 +183,10 @@ class ElevatorTest {
         class ListenerEvent {
             @Subscribe
             void listener(ElevatorArrivedEvent event) {
-                robots.put(event.getRobotId().getValue(), event.isEnterOrLeave());
+                robots.put(event.getRobotId().value(), event.isEnterOrLeave());
             }
         }
-        ServiceLocator.getService(EventPublisher.class).register(new ListenerEvent());
+        ServiceLocator.service(EventPublisher.class).register(new ListenerEvent());
         called.put("1", Request.of(RobotId.of("1"), Floor.of(1), Floor.of(2)));
         called.put("2", Request.of(RobotId.of("2"), Floor.of(5), Floor.of(2)));
 
@@ -219,9 +244,9 @@ class ElevatorTest {
     void Given_RobotTakeElevator_When_Release_Then_CleanRobotRequest() {
         RobotId robotId = RobotId.of("1");
         Robot robot = mock(Robot.class);
-        when(robot.getId()).thenReturn(robotId);
+        when(robot.id()).thenReturn(robotId);
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        called.put(request.getRobotId().getValue(), request);
+        called.put(request.getRobotId().value(), request);
         notified.add(robotId);
         elevator.release(robotId);
         assertFalse(called.containsValue(request));

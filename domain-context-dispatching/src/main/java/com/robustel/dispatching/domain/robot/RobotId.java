@@ -1,7 +1,7 @@
 package com.robustel.dispatching.domain.robot;
 
+import com.robustel.ddd.core.AbstractIdentity;
 import lombok.ToString;
-import org.yeung.api.AbstractIdentity;
 
 /**
  * @author YangXuehong

@@ -22,7 +22,7 @@ class RequestHistoryTest {
         Request request = mock(Request.class);
         RequestHistory history = RequestHistory.of(RequestHistoryId.of(1l), request, ElevatorId.of("1"));
         assertEquals(ElevatorId.of("1"), history.getElevatorId());
-        assertEquals(RequestHistoryId.of(1l), history.getId());
+        assertEquals(RequestHistoryId.of(1l), history.id());
         assertEquals(request, history.getRequest());
         assertEquals(Instant.now().truncatedTo(ChronoUnit.MINUTES), history.getFinishedOn().truncatedTo(ChronoUnit.MINUTES));
     }

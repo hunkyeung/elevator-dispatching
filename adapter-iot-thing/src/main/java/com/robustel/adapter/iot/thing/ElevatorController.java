@@ -30,14 +30,14 @@ public class ElevatorController {
         params.put("from", request.getFrom().getValue());
         params.put("to", request.getTo().getValue());
         executingInstructionApplication.doExecuteInstruction(
-                String.valueOf(elevatorId.getValue()),
+                String.valueOf(elevatorId.value()),
                 "take", params);
         log.debug("机器人【{}】想搭乘电梯【{}】从{}楼到{}楼", request.getRobotId(), elevatorId, request.getFrom().getValue(), request.getTo().getValue());
     }
 
     public void release(ElevatorId elevatorId) {
         executingInstructionApplication.doExecuteInstruction(
-                String.valueOf(elevatorId.getValue()),
+                String.valueOf(elevatorId.value()),
                 "release", new HashMap<>());
         log.debug("释放电梯【{}】开门按钮", elevatorId);
     }

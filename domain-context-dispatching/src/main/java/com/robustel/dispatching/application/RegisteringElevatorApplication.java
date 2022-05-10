@@ -1,10 +1,11 @@
 package com.robustel.dispatching.application;
 
+import com.robustel.ddd.service.EventPublisher;
+import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.dispatching.domain.elevator.*;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.yeung.api.util.DomainEventPublisher;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -35,8 +36,8 @@ public class RegisteringElevatorApplication {
         Map<String, Serializable> params = new HashMap<>();
         params.put("modelId", command.getModelId());
         params.put("sn", command.getSn());
-        DomainEventPublisher.publish(new ElevatorRegisteredEvent(elevatorId, params));
-        return elevator.getId().getValue();
+        ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(elevatorId, params));
+        return elevator.id().value();
     }
 
     @Getter

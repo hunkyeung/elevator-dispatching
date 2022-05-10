@@ -1,10 +1,10 @@
 package com.robustel.dispatching.domain.elevator;
 
+import com.robustel.ddd.core.ValueObject;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.yeung.api.ValueObject;
 
 /**
  * @author YangXuehong

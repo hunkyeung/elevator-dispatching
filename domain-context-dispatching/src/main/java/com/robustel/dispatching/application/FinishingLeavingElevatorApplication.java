@@ -1,6 +1,8 @@
 package com.robustel.dispatching.application;
 
 import com.google.common.eventbus.Subscribe;
+import com.robustel.ddd.service.ServiceLocator;
+import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.elevator.*;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryId;
@@ -10,7 +12,6 @@ import com.robustel.dispatching.domain.robot.RobotId;
 import com.robustel.dispatching.domain.robot.RobotNotFoundException;
 import com.robustel.dispatching.domain.robot.RobotRepository;
 import org.springframework.stereotype.Service;
-import org.yeung.api.util.UidGenerator;
 
 /**
  * @author YangXuehong
@@ -21,13 +22,11 @@ public class FinishingLeavingElevatorApplication {
     private final RobotRepository robotRepository;
     private final ElevatorRepository elevatorRepository;
     private final RequestHistoryRepository requestHistoryRepository;
-    private final UidGenerator uidGenerator;
 
-    public FinishingLeavingElevatorApplication(RobotRepository robotRepository, ElevatorRepository elevatorRepository, RequestHistoryRepository requestHistoryRepository, UidGenerator uidGenerator) {
+    public FinishingLeavingElevatorApplication(RobotRepository robotRepository, ElevatorRepository elevatorRepository, RequestHistoryRepository requestHistoryRepository) {
         this.robotRepository = robotRepository;
         this.elevatorRepository = elevatorRepository;
         this.requestHistoryRepository = requestHistoryRepository;
-        this.uidGenerator = uidGenerator;
     }
 
     public void doFinishLeavingElevator(RobotId robotId, ElevatorId elevatorId) {
@@ -45,7 +44,7 @@ public class FinishingLeavingElevatorApplication {
     @Subscribe
     public void listenOn(RobotLeftEvent event) {
         RequestHistory requestHistory = RequestHistory.of(
-                RequestHistoryId.of(uidGenerator.nextId()), event.getRequest(), event.getElevatorId());
+                RequestHistoryId.of(ServiceLocator.service(UidGenerator.class).nextId()), event.getRequest(), event.getElevatorId());
         requestHistoryRepository.save(requestHistory);
     }
 }

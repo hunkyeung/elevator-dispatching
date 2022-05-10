@@ -10,19 +10,20 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>domain-context-dispatching</artifactId>
-
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>com.robustel</groupId>
+            <artifactId>robustel-ddd-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.yeung</groupId>
-            <artifactId>ddd-core</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4-common</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

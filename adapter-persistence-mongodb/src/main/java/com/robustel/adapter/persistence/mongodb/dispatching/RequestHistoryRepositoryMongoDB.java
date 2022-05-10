@@ -1,6 +1,6 @@
 package com.robustel.adapter.persistence.mongodb.dispatching;
 
-import com.robustel.adapter.persistence.mongodb.core.AbstractRepositoryMongoDB;
+import com.robustel.adapter.persistence.mongodb.core.AbstractRepositoryMongo;
 import com.robustel.adapter.persistence.mongodb.core.MongoPageHelper;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryId;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
  * @date 2022/4/14
  */
 @Repository
-public class RequestHistoryRepositoryMongoDB extends AbstractRepositoryMongoDB<RequestHistory, RequestHistoryId>
+public class RequestHistoryRepositoryMongoDB extends AbstractRepositoryMongo<RequestHistory, RequestHistoryId>
         implements RequestHistoryRepository {
 
     protected RequestHistoryRepositoryMongoDB(MongoTemplate mongoTemplate, MongoPageHelper mongoPageHelper) {

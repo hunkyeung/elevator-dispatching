@@ -1,13 +1,13 @@
 package com.robustel.dispatching.domain;
 
+import com.robustel.ddd.query.Query;
+import com.robustel.ddd.query.Type;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.robot.Robot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.yeung.api.util.query.Query;
-import org.yeung.api.util.query.Type;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,12 +30,12 @@ public class RandomDispatchingStrategyService implements DispatchingStrategyServ
 
     @Override
     public Elevator selectElevator(Robot robot, Floor from, Floor to) {
-        Query query = new Query.Builder().matching(Type.in, "whiteList", Arrays.asList(robot.getId())).build();
+        Query query = new Query.Builder().matching(Type.IN, "whiteList", Arrays.asList(robot.id())).build();
         List<Elevator> elevatorList = elevatorRepository.findByCriteria(query).stream().filter(
                 elevator -> elevator.isValid(from, to)
         ).collect(Collectors.toList());
         if (elevatorList.isEmpty()) {
-            throw new NoElevatorAvailableException(robot.getId());
+            throw new NoElevatorAvailableException(robot.id());
         }
         return elevatorList.get(random.nextInt(elevatorList.size()));
     }

@@ -1,9 +1,9 @@
 package com.robustel.dispatching.domain.elevator;
 
+import com.robustel.ddd.core.AbstractEvent;
 import com.robustel.dispatching.domain.robot.RobotId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.yeung.api.AbstractEvent;
 
 /**
  * @author YangXuehong

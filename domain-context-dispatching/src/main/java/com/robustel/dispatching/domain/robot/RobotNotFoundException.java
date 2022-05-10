@@ -1,7 +1,7 @@
 package com.robustel.dispatching.domain.robot;
 
+import com.robustel.ddd.core.DomainException;
 import lombok.ToString;
-import org.yeung.api.DomainException;
 
 /**
  * @author YangXuehong

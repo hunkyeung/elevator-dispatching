@@ -47,10 +47,10 @@ class RobotTest {
     void Given_Elevator_When_Bind_Then_AddInWhiteListAndElevatorBindInvoked() {
         Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), null, null, new HashSet<>());
         Elevator elevator = mock(Elevator.class);
-        when(elevator.getId()).thenReturn(ElevatorId.of("1"));
+        when(elevator.id()).thenReturn(ElevatorId.of("1"));
         robot.bind(elevator);
-        assertTrue(robot.getWhiteList().contains(elevator.getId()));
-        verify(elevator).bind(robot.getId());
+        assertTrue(robot.getWhiteList().contains(elevator.id()));
+        verify(elevator).bind(robot.id());
     }
 
     @Test
@@ -60,11 +60,11 @@ class RobotTest {
         elevatorIdSet.add(elevatorId);
         Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), null, null, elevatorIdSet);
         Elevator elevator = mock(Elevator.class);
-        when(elevator.getId()).thenReturn(elevatorId);
-        assertTrue(robot.getWhiteList().contains(elevator.getId()));
+        when(elevator.id()).thenReturn(elevatorId);
+        assertTrue(robot.getWhiteList().contains(elevator.id()));
         robot.unbind(elevator);
-        assertFalse(robot.getWhiteList().contains(elevator.getId()));
-        verify(elevator).unbind(robot.getId());
+        assertFalse(robot.getWhiteList().contains(elevator.id()));
+        verify(elevator).unbind(robot.id());
     }
 
 }

@@ -1,6 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
-import org.yeung.core.Repository;
+import com.robustel.ddd.core.Repository;
 
 /**
  * @author YangXuehong

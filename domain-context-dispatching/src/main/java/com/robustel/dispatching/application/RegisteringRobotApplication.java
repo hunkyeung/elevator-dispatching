@@ -1,5 +1,7 @@
 package com.robustel.dispatching.application;
 
+import com.robustel.ddd.service.EventPublisher;
+import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.dispatching.domain.robot.Robot;
 import com.robustel.dispatching.domain.robot.RobotId;
 import com.robustel.dispatching.domain.robot.RobotRegisteredEvent;
@@ -7,7 +9,6 @@ import com.robustel.dispatching.domain.robot.RobotRepository;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.yeung.api.util.DomainEventPublisher;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -37,8 +38,8 @@ public class RegisteringRobotApplication {
         robotRepository.save(robot);
         Map<String, Serializable> params = new HashMap<>();
         params.put("modelId", command.getModelId());
-        DomainEventPublisher.publish(new RobotRegisteredEvent(robotId, params));
-        return robot.getId().getValue();
+        ServiceLocator.service(EventPublisher.class).publish(new RobotRegisteredEvent(robotId, params));
+        return robot.id().value();
     }
 
     @Getter
