@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>adapter-iot-thing-dispatching</artifactId>
+    <artifactId>adapter-acl-iot-thing-dispatching</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.robustel</groupId>

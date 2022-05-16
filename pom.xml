@@ -15,9 +15,9 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>domain-context-dispatching</module>
-        <module>adapter-persistence-mongodb</module>
-        <module>adapter-resource</module>
-        <module>adapter-iot-thing</module>
+        <module>adapter-persistence-mongodb-dispatching</module>
+        <module>adapter-resource-dispatching</module>
+        <module>adapter-acl-iot-thing-dispatching</module>
         <module>elevator-dispatching-bootstrap</module>
     </modules>
 
