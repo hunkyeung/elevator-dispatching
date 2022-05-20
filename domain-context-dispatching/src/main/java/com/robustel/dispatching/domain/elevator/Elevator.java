@@ -159,4 +159,8 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         ServiceLocator.service(EventPublisher.class).publish(new RobotLeftEvent(id(), request));
         respondFrom(robot.id());
     }
+
+    public void accept(RobotId robotId, Floor from, Floor to) {
+        accept(Request.of(robotId, from, to));
+    }
 }

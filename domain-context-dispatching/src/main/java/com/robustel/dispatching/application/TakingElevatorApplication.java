@@ -4,7 +4,6 @@ import com.robustel.dispatching.domain.SelectingElevatorStrategyService;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
-import com.robustel.dispatching.domain.elevator.Request;
 import com.robustel.dispatching.domain.robot.Robot;
 import com.robustel.dispatching.domain.robot.RobotId;
 import com.robustel.dispatching.domain.robot.RobotNotFoundException;
@@ -20,12 +19,12 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class TakingElevatorApplication {
-    private final SelectingElevatorStrategyService dispatchingService;
+    private final SelectingElevatorStrategyService selectingElevatorStrategyService;
     private final RobotRepository robotRepository;
     private final ElevatorRepository elevatorRepository;
 
-    public TakingElevatorApplication(SelectingElevatorStrategyService dispatchingService, RobotRepository robotRepository, ElevatorRepository elevatorRepository) {
-        this.dispatchingService = dispatchingService;
+    public TakingElevatorApplication(SelectingElevatorStrategyService selectingElevatorStrategyService, RobotRepository robotRepository, ElevatorRepository elevatorRepository) {
+        this.selectingElevatorStrategyService = selectingElevatorStrategyService;
         this.robotRepository = robotRepository;
         this.elevatorRepository = elevatorRepository;
     }
@@ -36,9 +35,8 @@ public class TakingElevatorApplication {
         );
         Floor from = command.getFrom();
         Floor to = command.getTo();
-        Elevator elevator = dispatchingService.selectElevator(robot, from, to);
-        Request request = Request.of(robot.id(), from, to);
-        elevator.accept(request);
+        Elevator elevator = selectingElevatorStrategyService.selectElevator(robot, from, to);
+        elevator.accept(robot.id(), from, to);
         elevatorRepository.save(elevator);
         return elevator.id().value();
     }

@@ -20,11 +20,11 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-public class RandomlySelectingElevatorStrategyService implements SelectingElevatorStrategyService {
+public class DefaultSelectingElevatorStrategyService implements SelectingElevatorStrategyService {
     private final ElevatorRepository elevatorRepository;
     private static final Random random = new Random();
 
-    public RandomlySelectingElevatorStrategyService(ElevatorRepository elevatorRepository) {
+    public DefaultSelectingElevatorStrategyService(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
     }
 

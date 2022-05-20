@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
  * @author YangXuehong
  * @date 2022/4/22
  */
-class RandomlySelectingElevatorStrategyServiceTest {
+class DefaultSelectingElevatorStrategyServiceTest {
 
     private SelectingElevatorStrategyService service;
     private ElevatorRepository elevatorRepository;
@@ -28,7 +28,7 @@ class RandomlySelectingElevatorStrategyServiceTest {
     @BeforeEach
     void init() {
         elevatorRepository = mock(ElevatorRepository.class);
-        service = new RandomlySelectingElevatorStrategyService(elevatorRepository);
+        service = new DefaultSelectingElevatorStrategyService(elevatorRepository);
     }
 
     @Test
