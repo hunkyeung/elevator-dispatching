@@ -101,7 +101,7 @@ public class Elevator extends AbstractEntity<ElevatorId> {
         return Arrays.stream(floors).anyMatch(floor -> floor.compareTo(lowest) >= 0 && floor.compareTo(highest) <= 0);
     }
 
-    public void release(RobotId robotId) {
+    public void cancelRequest(RobotId robotId) {
         //todo 如果机器人无法出梯，且确保安全后，释放电梯，梯控请求是否仍保留
         Request request = this.calledRequests.remove(robotId.value());
         if (request != null) {//当机器人主动释放电梯时，表示机器人乘梯失败。如果需要继续乘梯，需重新招唤电梯

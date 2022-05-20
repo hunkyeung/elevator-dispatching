@@ -12,18 +12,18 @@ import org.springframework.stereotype.Service;
  * @date 2022/4/19
  */
 @Service
-public class ReleasingDoorApplication {
-    private final ElevatorRepository elevatorRepository;
+public class CancelingRequestApplication {
+    private final ElevatorRepository repository;
 
-    public ReleasingDoorApplication(ElevatorRepository elevatorRepository) {
-        this.elevatorRepository = elevatorRepository;
+    public CancelingRequestApplication(ElevatorRepository repository) {
+        this.repository = repository;
     }
 
-    public void doReleaseDoor(RobotId robotId, ElevatorId elevatorId) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
+    public void doCancelRequest(RobotId robotId, ElevatorId elevatorId) {
+        Elevator elevator = repository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        elevator.release(robotId);
-        elevatorRepository.save(elevator);
+        elevator.cancelRequest(robotId);
+        repository.save(elevator);
     }
 }

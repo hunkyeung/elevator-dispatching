@@ -20,21 +20,21 @@ import static org.mockito.Mockito.when;
  * @author YangXuehong
  * @date 2022/4/22
  */
-class RandomDispatchingStrategyServiceTest {
+class RandomlySelectingElevatorStrategyServiceTest {
 
-    private DispatchingStrategyService service;
+    private SelectingElevatorStrategyService service;
     private ElevatorRepository elevatorRepository;
 
     @BeforeEach
     void init() {
         elevatorRepository = mock(ElevatorRepository.class);
-        service = new RandomDispatchingStrategyService(elevatorRepository);
+        service = new RandomlySelectingElevatorStrategyService(elevatorRepository);
     }
 
     @Test
     void Given_EmptyList_When_SelectElevator_Then_ThrowsNoElevatorAvailableException() {
         when(elevatorRepository.findByCriteria(any())).thenReturn(new LinkedList<>());
-        Assertions.assertThrows(DispatchingStrategyService.NoElevatorAvailableException.class,
+        Assertions.assertThrows(SelectingElevatorStrategyService.NoElevatorAvailableException.class,
                 () -> service.selectElevator(mock(Robot.class), Floor.of(-1), Floor.of(10)));
     }
 

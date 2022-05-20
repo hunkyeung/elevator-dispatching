@@ -2,7 +2,7 @@ package com.robustel.adapter.resource;
 
 import com.robustel.dispatching.application.FinishingEnteringElevatorApplication;
 import com.robustel.dispatching.application.FinishingLeavingElevatorApplication;
-import com.robustel.dispatching.application.ReleasingDoorApplication;
+import com.robustel.dispatching.application.CancelingRequestApplication;
 import com.robustel.dispatching.application.TakingElevatorApplication;
 import com.robustel.dispatching.domain.elevator.ElevatorId;
 import com.robustel.dispatching.domain.robot.RobotId;
@@ -27,7 +27,7 @@ public class RobotResource {
     @Autowired
     private FinishingLeavingElevatorApplication finishingLeavingElevatorApplication;
     @Autowired
-    private ReleasingDoorApplication releasingDoorApplication;
+    private CancelingRequestApplication cancelingRequestApplication;
 
     @PutMapping("/robots/{robotId}/taking")
     public RestResponse<Map<String, Object>> takeElevator(@PathVariable String robotId, @RequestBody TakingElevatorApplication.Command command) {
@@ -50,7 +50,7 @@ public class RobotResource {
 
     @PutMapping("/robots/{robotId}/releasing")
     public RestResponse<Void> releaseDoor(@PathVariable String robotId, @RequestParam String elevatorId) {
-        releasingDoorApplication.doReleaseDoor(RobotId.of(robotId), ElevatorId.of(elevatorId));
+        cancelingRequestApplication.doCancelRequest(RobotId.of(robotId), ElevatorId.of(elevatorId));
         return RestResponse.ofSuccessWithoutResult();
     }
 }

@@ -248,7 +248,7 @@ class ElevatorTest {
         Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
         called.put(request.getRobotId().value(), request);
         notified.add(robotId);
-        elevator.release(robotId);
+        elevator.cancelRequest(robotId);
         assertFalse(called.containsValue(request));
         assertFalse(notified.contains(robotId));
     }

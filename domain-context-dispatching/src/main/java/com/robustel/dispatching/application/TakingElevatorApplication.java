@@ -1,6 +1,6 @@
 package com.robustel.dispatching.application;
 
-import com.robustel.dispatching.domain.DispatchingStrategyService;
+import com.robustel.dispatching.domain.SelectingElevatorStrategyService;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
@@ -20,11 +20,11 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class TakingElevatorApplication {
-    private final DispatchingStrategyService dispatchingService;
+    private final SelectingElevatorStrategyService dispatchingService;
     private final RobotRepository robotRepository;
     private final ElevatorRepository elevatorRepository;
 
-    public TakingElevatorApplication(DispatchingStrategyService dispatchingService, RobotRepository robotRepository, ElevatorRepository elevatorRepository) {
+    public TakingElevatorApplication(SelectingElevatorStrategyService dispatchingService, RobotRepository robotRepository, ElevatorRepository elevatorRepository) {
         this.dispatchingService = dispatchingService;
         this.robotRepository = robotRepository;
         this.elevatorRepository = elevatorRepository;

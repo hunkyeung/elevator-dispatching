@@ -10,7 +10,7 @@ import com.robustel.dispatching.domain.robot.RobotId;
  * @author YangXuehong
  * @date 2022/4/8
  */
-public interface DispatchingStrategyService {
+public interface SelectingElevatorStrategyService {
     Elevator selectElevator(Robot robot, Floor from, Floor to);
 
     class NoElevatorAvailableException extends DomainException {
