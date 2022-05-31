@@ -1,70 +1,31 @@
 package com.robustel.dispatching.domain.robot;
 
-import com.robustel.dispatching.domain.elevator.Elevator;
-import com.robustel.dispatching.domain.elevator.ElevatorId;
-import org.junit.jupiter.api.Assertions;
+import com.robustel.dispatching.domain.InitServiceLocator;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-/**
- * @author YangXuehong
- * @date 2022/4/11
- */
 class RobotTest {
 
-    @Test
-    void Given_Normal_When_Enter_Then_EnteringTimeWasSet() {
-        Robot robot = new Robot(RobotId.of("1"));
-        robot.enter(ElevatorId.of("2"));
-        assertNotNull(robot.getEnteringTime());
-        assertNull(robot.getLeavingTime());
-        //todo 需要补充验证设置的时间与当前时间误差在许可范围
+    @BeforeAll
+    static void initAll() {
+        InitServiceLocator.init();
     }
 
     @Test
-    void Given_RobotEnteringTheElevator_When_LeaveTheElevator_Then_LeavingTimeWasSet() {
-        Robot robot = new Robot(RobotId.of("1"), Instant.now(), null, new HashSet<>());
-        robot.leave(ElevatorId.of("2"));
-        assertNotNull(robot.getLeavingTime());
-        //todo 需要补充验证设置的时间与当前时间误差在许可范围
+    void Given_Null_When_Of_Then_ThrowException() {
+        assertThrows(NullPointerException.class,
+                () -> Robot.create(null, "bar"));
+        assertThrows(NullPointerException.class,
+                () -> Robot.create("foo", null));
     }
 
     @Test
-    void Given_RobotNotEnterTheElevator_When_LeaveTheElevator_Then_ThrowRobotNotEnterElevatorException() {
-        Robot robot = new Robot(RobotId.of("1"));
-        Assertions.assertThrows(RobotNotEnterElevatorException.class,
-                () -> robot.leave(ElevatorId.of("2")));
-    }
-
-    @Test
-    void Given_Elevator_When_Bind_Then_AddInWhiteListAndElevatorBindInvoked() {
-        Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), null, null, new HashSet<>());
-        Elevator elevator = mock(Elevator.class);
-        when(elevator.id()).thenReturn(ElevatorId.of("1"));
-        robot.bind(elevator);
-        assertTrue(robot.getWhiteList().contains(elevator.id()));
-        verify(elevator).bind(robot.id());
-    }
-
-    @Test
-    void Given_Elevator_When_Unbind_Then_RemoveFromWhiteListAndElevatorUnbindInvoked() {
-        Set<ElevatorId> elevatorIdSet = new HashSet<>();
-        ElevatorId elevatorId = ElevatorId.of("1");
-        elevatorIdSet.add(elevatorId);
-        Robot robot = new Robot(RobotId.of(UUID.randomUUID().toString()), null, null, elevatorIdSet);
-        Elevator elevator = mock(Elevator.class);
-        when(elevator.id()).thenReturn(elevatorId);
-        assertTrue(robot.getWhiteList().contains(elevator.id()));
-        robot.unbind(elevator);
-        assertFalse(robot.getWhiteList().contains(elevator.id()));
-        verify(elevator).unbind(robot.id());
+    void Given_Normal_When_Of_Then_YouExpected() {
+        Robot of = Robot.create("foo", "bar");
+        assertNotNull(of.id());
+        assertEquals("foo", of.getName());
     }
 
 }

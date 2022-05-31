@@ -1,256 +1,247 @@
 package com.robustel.dispatching.domain.elevator;
 
-import com.google.common.eventbus.Subscribe;
-import com.robustel.adapter.ddd.service.idgenerator.snowflake.SnowFlakeUidGenerator;
-import com.robustel.adapter.ddd.service.publisher.guava.GuavaEventBusPublisher;
-import com.robustel.ddd.service.EventPublisher;
-import com.robustel.ddd.service.ServiceLocator;
-import com.robustel.ddd.service.UidGenerator;
-import com.robustel.dispatching.domain.robot.Robot;
-import com.robustel.dispatching.domain.robot.RobotId;
-import com.robustel.dispatching.domain.robot.RobotNotAllowedEnterException;
-import org.junit.jupiter.api.Assertions;
+import com.robustel.dispatching.domain.InitServiceLocator;
+import com.robustel.dispatching.domain.takingrequesthistory.TakingRequestHistory;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
-/**
- * @author YangXuehong
- * @date 2022/4/11
- */
 class ElevatorTest {
 
-    private Elevator outOfService;
     private Elevator elevator;
-    private Map<String, Request> called;
-    private Map<String, Request> took;
-    private Set<RobotId> notified;
 
-    private void initServiceLocator() {
-        ServiceLocator.setRegistry(new ServiceLocator.ServiceRegistry() {
-            private static Map<Class, Object> service = new HashMap<>();
-
-            static {
-                service.put(UidGenerator.class, new SnowFlakeUidGenerator(1L, 30L));
-                service.put(EventPublisher.class, new GuavaEventBusPublisher());
-            }
-
-            @Override
-            public <T> T getService(Class<T> aClass) {
-                return (T) service.get(aClass);
-            }
-
-            @Override
-            public <T> T getBean(String s, Class<T> aClass) {
-                throw new IllegalStateException("Not support!");
-            }
-        });
+    @BeforeAll
+    static void initAll() {
+        InitServiceLocator.init();
     }
 
     @BeforeEach
     void init() {
-        initServiceLocator();
-        Set<RobotId> whiteList = new HashSet<>();
-        RobotId robotId = RobotId.of("1");
-        whiteList.add(robotId);
-        called = new HashMap<>();
-        took = new HashMap<>();
-        notified = new HashSet<>();
-        outOfService = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
-                State.OUT_OF_SERVICE, called, took, whiteList, notified);
-        elevator = new Elevator(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1),
-                State.IN_SERVICE, called, took, whiteList, notified);
+        elevator = Elevator.create("foobar2000", 10, -2, "foo", "bar");
     }
 
     @Test
-    void Given_OutOfService_When_Accept_Then_ThrowsIllegalStateException() {
-        Assertions.assertThrows(ElevatorOutOfServiceException.class,
-                () -> outOfService.accept(mock(Request.class)));
+    void Given_Null_When_Create_Then_ThrowsException() {
+        assertThrows(NullPointerException.class,
+                () -> Elevator.create(null, 10, -1, "foo", "bar"));
+        assertThrows(NullPointerException.class,
+                () -> Elevator.create("foobar2000", 10, -1, null, "bar"));
+        assertThrows(NullPointerException.class,
+                () -> Elevator.create("foobar2000", 10, -1, "foo", null));
+        assertThrows(IllegalArgumentException.class,
+                () -> Elevator.create("foobar2000", -1, 10, "foo", "bar"));
     }
 
     @Test
-    void Given_WithCalledRequest_When_Accept_Then_ThrowsIllegalStateException() {
-        Request request = Request.of(RobotId.of("1"), Floor.of(2), Floor.of(10));
-        Request mock = mock(Request.class);
-        when(mock.getRobotId()).thenReturn(RobotId.of("1"));
-        called.put("1", request);
-        Assertions.assertThrows(RequestAlreadyExistException.class,
-                () -> elevator.accept(mock));
+    void Given_Normal_When_Create_When_Expected() {
+        assertNotNull(elevator.id());
+        assertEquals("foobar2000", elevator.getName());
+        assertEquals(Floor.of(10), elevator.getHighest());
+        assertEquals(Floor.of(-2), elevator.getLowest());
+        assertNull(elevator.getCurrentFloor());
+        assertEquals(ElevatorState.NONE, elevator.getState());
+        assertTrue(elevator.getNotifiedPassengers().isEmpty());
+        assertTrue(elevator.getPassengers().isEmpty());
+        assertTrue(elevator.getTakingRequests().isEmpty());
     }
 
     @Test
-    void Given_WithTookRequest_When_Accept_Then_ThrowsIllegalStateException() {
-        Request request = Request.of(RobotId.of("1"), Floor.of(2), Floor.of(10));
-        Request mock = mock(Request.class);
-        when(mock.getRobotId()).thenReturn(RobotId.of("1"));
-        took.put("1", request);
-        Assertions.assertThrows(RequestAlreadyExistException.class,
-                () -> elevator.accept(mock));
+    void Given_Floor_When_Arrive_Then_CurrentFloorWasSet() {
+        elevator.arrive(Floor.of(2));
+        assertEquals(Floor.of(2), elevator.getCurrentFloor());
     }
 
     @Test
-    void Given_WithNonRequest_When_Accept_Then_RequestInCalledMap() {
-        Elevator elevator = Elevator.of(ElevatorId.of("foo"), Floor.of(16), Floor.of(-1));
-        Request request = Request.of(RobotId.of("1"), Floor.of(1), Floor.of(2));
-        elevator.accept(request);
-        assertEquals(request, elevator.getCalledRequests().get(RobotId.of("1").value()));
+    void Given_Null_When_Take_Then_ThrowsException() {
+        assertThrows(NullPointerException.class, () -> elevator.take(null, null, null));
+        assertThrows(NullPointerException.class, () -> elevator.take(Passenger.of(1L), null, null));
+        assertThrows(NullPointerException.class, () -> elevator.take(Passenger.of(1L), Floor.of(1), null));
     }
 
     @Test
-    void Given_RobotNotInWhiteList_When_Enter_Then_ThrowsRobotNotAllowedEnterException() {
-        RobotId robotId = RobotId.of("2");
-        Robot robot = mock(Robot.class);
-        when(robot.id()).thenReturn(robotId);
-        Assertions.assertThrows(RobotNotAllowedEnterException.class,
-                () -> elevator.enter(robot));
-
+    void Given_TakingRequestOfPassengerExist_When_Take_Then_ThrowsException() {
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null,
+                ElevatorState.NONE, Map.of(1L, mock(TakingRequest.class)), Set.of(Passenger.of(1L)), Set.of());
+        assertThrows(TakingRequestAlreadyExistException.class, () -> elevator.take(Passenger.of(1L), Floor.of(1), Floor.of(5)));
     }
 
     @Test
-    void Given_RobotWithoutTakeElevator_When_Enter_Then_ThrowsRequestNotFoundException() {
-        RobotId robotId = RobotId.of("1");
-        Robot robot = mock(Robot.class);
-        when(robot.id()).thenReturn(robotId);
-        Assertions.assertThrows(RequestNotFoundException.class,
-                () -> elevator.enter(robot));
-
+    void Given_TakingRequestOfPassengerNotExist_When_Take_Then_Expected() {
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null,
+                ElevatorState.NONE, new HashMap<>(), Set.of(Passenger.of(1L)), Set.of());
+        elevator.take(Passenger.of(1L), Floor.of(1), Floor.of(5));
+        assertNotNull(elevator.getTakingRequests().get(1L));
     }
 
     @Test
-    void Given_RobotTakeElevator_When_Enter_Then_ThrowsRequestNotFoundException() {
-        RobotId robotId = RobotId.of("1");
-        Robot robot = mock(Robot.class);
-        when(robot.id()).thenReturn(robotId);
-        Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        called.put(request.getRobotId().value(), request);
-        notified.add(robotId);
-        elevator.enter(robot);
-        assertTrue(took.containsValue(request));
-        verify(robot).enter(ElevatorId.of("foo"));
-        assertFalse(notified.contains(robotId));
-    }
-
-
-    @Test
-    void Given_RobotNotInElevator_When_Leave_Then_ThrowsRequestNotFoundException() {
-        RobotId robotId = RobotId.of("1");
-        Robot robot = mock(Robot.class);
-        when(robot.id()).thenReturn(robotId);
-        Assertions.assertThrows(RequestNotFoundException.class,
-                () -> elevator.leave(robot));
+    void Given_UnbindingPassenger_When_Bind_Then_Expected() {
+        elevator.bind(Passenger.of(1L));
+        assertTrue(elevator.getPassengers().contains(Passenger.of(1L)));
     }
 
     @Test
-    void Given_RobotInElevator_When_Leave_Then_Success() {
-        RobotId robotId = RobotId.of("1");
-        Robot robot = mock(Robot.class);
-        when(robot.id()).thenReturn(robotId);
-        Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        took.put(request.getRobotId().value(), request);
-        notified.add(robotId);
-        elevator.leave(robot);
-        assertFalse(took.containsValue(request));
-        verify(robot).leave(ElevatorId.of("foo"));
-        assertFalse(notified.contains(robotId));
+    void Given_BindingPassenger_When_Bind_Then_Ignore() {
+        elevator.bind(Passenger.of(1L));
+        elevator.bind(Passenger.of(1L));
+        assertTrue(elevator.getPassengers().contains(Passenger.of(1L)));
     }
 
     @Test
-    void Given_OverHighestFloorOrLowest_When_IsValid_Then_ReturnFalse() {
-        Elevator elevator = Elevator.of(ElevatorId.of("1"), Floor.of(10), Floor.of(-2));
+    void Given_UnbindingPassenger_When_Unbind_Then_Expected() {
+        elevator.unbind(Passenger.of(1L));
+        assertFalse(elevator.getPassengers().contains(Passenger.of(1L)));
+    }
+
+    @Test
+    void Given_BindingPassenger_When_Unbind_Then_Ignore() {
+        elevator.bind(Passenger.of(1L));
+        assertTrue(elevator.isBinding(Passenger.of(1L)));
+        elevator.unbind(Passenger.of(1L));
+        assertFalse(elevator.getPassengers().contains(Passenger.of(1L)));
+    }
+
+    @Test
+    void Given_NotOutState_When_TellIn_Then_Ignore() {
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(5),
+                ElevatorState.NONE, new HashMap<>(), new HashSet<>(), new HashSet<>());
+        foobar2000.tellIn();
+        assertEquals(ElevatorState.NONE, foobar2000.getState());
+    }
+
+    @Test
+    void Given_OutStateWithEmptyRequests_When_TellIn_Then_StateWasSetNone() {
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(5),
+                ElevatorState.WAITING_OUT, new HashMap<>(), new HashSet<>(), new HashSet<>());
+        foobar2000.tellIn();
+        assertEquals(ElevatorState.NONE, elevator.getState());
+    }
+
+    @Test
+    void Given_OutStateWithNotEmptyRequests_When_TellIn_Then_StateWasSetIn() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(-1), Floor.of(5), Instant.now(), null, null, null));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(-1),
+                ElevatorState.WAITING_OUT, takingRequestMap, new HashSet<>(), new HashSet<>());
+        foobar2000.tellIn();
+        assertEquals(ElevatorState.WAITING_IN, foobar2000.getState());
+    }
+
+    @Test
+    void Given_() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(3), Floor.of(5), Instant.now(), null, null, null));
+        takingRequestMap.put(2L, new TakingRequest(2L, Passenger.of(2L), Floor.of(2), Floor.of(3), Instant.now(), Instant.now(), null, null));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3),
+                ElevatorState.NONE, takingRequestMap, new HashSet<>(), new HashSet<>());
+        foobar2000.passengerOutIn();
+        assertEquals(ElevatorState.WAITING_OUT, foobar2000.getState());
+    }
+
+    void Given_2() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(3), Floor.of(5), Instant.now(), null, null, null));
+        takingRequestMap.put(2L, new TakingRequest(2L, Passenger.of(2L), Floor.of(2), Floor.of(3), Instant.now(), Instant.now(), null, null));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3),
+                ElevatorState.NONE, takingRequestMap, new HashSet<>(), new HashSet<>());
+        foobar2000.passengerOutIn();
+        assertEquals(ElevatorState.WAITING_OUT, foobar2000.getState());
+    }
+
+    @Test
+    void Given_NoneState_When_CancelTakingRequest_Then_Expected() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(3), Floor.of(5), Instant.now(), null, null, null));
+        takingRequestMap.put(2L, new TakingRequest(2L, Passenger.of(2L), Floor.of(2), Floor.of(3), Instant.now(), Instant.now(), null, null));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(1),
+                ElevatorState.NONE, takingRequestMap, Set.of(Passenger.of(1L), Passenger.of(2L)), new HashSet<>());
+        assertTrue(foobar2000.getTakingRequests().containsKey(1L));
+        foobar2000.cancelTakingRequest(Passenger.of(1L), "Test");
+        assertFalse(foobar2000.getTakingRequests().containsKey(1L));
+    }
+
+    @Test
+    void Given_WaitingOutState_When_CancelTakingRequest_Then_Expected() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(3), Floor.of(5), Instant.now(), null, null, null));
+        takingRequestMap.put(2L, new TakingRequest(2L, Passenger.of(2L), Floor.of(2), Floor.of(3), Instant.now(), Instant.now(), null, null));
+        Set<Passenger> waitingOut = new HashSet<>();
+        waitingOut.add(Passenger.of(2L));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3),
+                ElevatorState.WAITING_OUT, takingRequestMap, Set.of(Passenger.of(1L), Passenger.of(2L)), waitingOut);
+        assertTrue(foobar2000.getTakingRequests().containsKey(2L));
+        TakingRequestHistory history = foobar2000.cancelTakingRequest(Passenger.of(2L), "Test");
+        assertFalse(foobar2000.getTakingRequests().containsKey(2L));
+        assertTrue(elevator.getNotifiedPassengers().isEmpty());
+    }
+
+    @Test
+    void Given_NoBindings_When_CancelTakingRequest_Then_ThrowsException() {
+        assertThrows(PassengerNotAllowedException.class, () -> elevator.cancelTakingRequest(Passenger.of(100L), ""));
+    }
+
+    @Test
+    void Given_NoTakingRequests_When_CancelTakingRequest_Then_ThrowsException() {
+        elevator.bind(Passenger.of(100L));
+        assertThrows(TakingRequestNotFoundException.class, () -> elevator.cancelTakingRequest(Passenger.of(100L), ""));
+    }
+
+    @Test
+    void Given_NoBindings_When_Finish_Then_ThrowsException() {
+        assertThrows(PassengerNotAllowedException.class, () -> elevator.finish(Passenger.of(100L)));
+    }
+
+    @Test
+    void Given_NoneState_When_Finish_Then_ThrowsException() {
+        elevator.bind(Passenger.of(1L));
+        assertThrows(IllegalStateException.class, () -> elevator.finish(Passenger.of(1L)));
+    }
+
+    @Test
+    void Given_WaitingOutOrInStateButNotExistRequest_When_Finish_Then_ThrowsException() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(3), Floor.of(5), Instant.now(), null, null, null));
+        takingRequestMap.put(2L, new TakingRequest(2L, Passenger.of(2L), Floor.of(2), Floor.of(3), Instant.now(), Instant.now(), null, null));
+        Set<Passenger> waitingOut = new HashSet<>();
+        waitingOut.add(Passenger.of(2L));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3),
+                ElevatorState.WAITING_OUT, takingRequestMap, Set.of(Passenger.of(1L), Passenger.of(2L), Passenger.of(3L)), waitingOut);
+        assertThrows(TakingRequestNotFoundException.class, () -> foobar2000.finish(Passenger.of(3L)));
+    }
+
+    @Test
+    void Given_BetweenHighestAndLowest_When_IsValid_Then_ReturnTrue() {
+        assertTrue(elevator.isValid(Floor.of(1)));
+        assertTrue(elevator.isValid(Floor.of(10)));
+        assertTrue(elevator.isValid(Floor.of(-2)));
+    }
+
+    @Test
+    void Given_OutOfHighestAndLowest_When_IsValid_Then_ReturnFalse() {
         assertFalse(elevator.isValid(Floor.of(-3)));
         assertFalse(elevator.isValid(Floor.of(11)));
     }
 
-
     @Test
-    void Given_BetweenHighestFloorAndLowest_When_IsValid_Then_ReturnTrue() {
-        Elevator elevator = Elevator.of(ElevatorId.of("1"), Floor.of(10), Floor.of(-2));
-        assertTrue(elevator.isValid(Floor.of(-2)));
-        assertTrue(elevator.isValid(Floor.of(5)));
-        assertTrue(elevator.isValid(Floor.of(10)));
-    }
-
-    @Test
-    void Given_Request_When_Arrive_Then_NoticeRobotToEnter() {
-        Map<String, Boolean> robots = new HashMap<>();
-        class ListenerEvent {
-            @Subscribe
-            void listener(ElevatorArrivedEvent event) {
-                robots.put(event.getRobotId().value(), event.isEnterOrLeave());
-            }
-        }
-        ServiceLocator.service(EventPublisher.class).register(new ListenerEvent());
-        called.put("1", Request.of(RobotId.of("1"), Floor.of(1), Floor.of(2)));
-        called.put("2", Request.of(RobotId.of("2"), Floor.of(5), Floor.of(2)));
-
-        took.put("3", Request.of(RobotId.of("3"), Floor.of(5), Floor.of(10)));
-        took.put("4", Request.of(RobotId.of("4"), Floor.of(8), Floor.of(2)));
-//        elevator.arrive(Floor.of(1));
-//        assertTrue(robots.get("1"));
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(2));
-//        assertFalse(robots.get("2"));
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(3));
-//        assertTrue(robots.isEmpty());
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(5));
-//        assertTrue(robots.isEmpty());
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(10));
-//        assertFalse(robots.get("3"));
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(9));
-//        assertTrue(robots.isEmpty());
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(8));
-//        assertTrue(robots.isEmpty());
-//        robots.clear();
-//
-//        elevator.arrive(Floor.of(8));
-//        assertTrue(robots.isEmpty());
-//        robots.clear();
-    }
-
-    @Test
-    void Given_RobotId_When_Bind_The_AddInWhiteList() {
-        RobotId robotId = RobotId.of("2");
-        elevator.bind(robotId);
-        assertTrue(elevator.getWhiteList().contains(robotId));
-    }
-
-    @Test
-    void Given_RobotId_When_Unbind_The_RemoveFromWhiteList() {
-        RobotId robotId = RobotId.of("1");
-        assertTrue(elevator.getWhiteList().contains(robotId));
-        elevator.unbind(robotId);
-        assertFalse(elevator.getWhiteList().contains(robotId));
-    }
-
-    @Test
-    void Given_RobotTakeElevator_When_Release_Then_CleanRobotRequest() {
-        RobotId robotId = RobotId.of("1");
-        Robot robot = mock(Robot.class);
-        when(robot.id()).thenReturn(robotId);
-        Request request = Request.of(robotId, Floor.of(1), Floor.of(2));
-        called.put(request.getRobotId().value(), request);
-        notified.add(robotId);
-        elevator.cancelRequest(robotId);
-        assertFalse(called.containsValue(request));
-        assertFalse(notified.contains(robotId));
+    void Given_Any_When_Reset_Then_Expected() {
+        Map<Long, TakingRequest> takingRequestMap = new HashMap<>();
+        takingRequestMap.put(1L, new TakingRequest(1L, Passenger.of(1L), Floor.of(3), Floor.of(5), Instant.now(), null, null, null));
+        takingRequestMap.put(2L, new TakingRequest(2L, Passenger.of(2L), Floor.of(2), Floor.of(3), Instant.now(), Instant.now(), null, null));
+        Set<Passenger> waitingOut = new HashSet<>();
+        waitingOut.add(Passenger.of(2L));
+        Elevator foobar2000 = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3),
+                ElevatorState.WAITING_OUT, takingRequestMap, Set.of(Passenger.of(1L), Passenger.of(2L), Passenger.of(3L)), waitingOut);
+        foobar2000.reset();
+        assertTrue(foobar2000.getNotifiedPassengers().isEmpty());
+        assertEquals(ElevatorState.NONE, foobar2000.getState());
     }
 
 }

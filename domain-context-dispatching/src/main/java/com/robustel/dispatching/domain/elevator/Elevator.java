@@ -3,12 +3,12 @@ package com.robustel.dispatching.domain.elevator;
 import com.robustel.ddd.core.AbstractEntity;
 import com.robustel.ddd.service.EventPublisher;
 import com.robustel.ddd.service.ServiceLocator;
-import com.robustel.dispatching.domain.robot.Robot;
-import com.robustel.dispatching.domain.robot.RobotId;
-import com.robustel.dispatching.domain.robot.RobotNotAllowedEnterException;
+import com.robustel.ddd.service.UidGenerator;
+import com.robustel.dispatching.domain.takingrequesthistory.TakingRequestHistory;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -21,146 +21,163 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Slf4j
-public class Elevator extends AbstractEntity<ElevatorId> {
+public class Elevator extends AbstractEntity<Long> {
+    private String name;
     private Floor highest;//最高楼层
     private Floor lowest;//最低楼层
-    private State state;
-    private Map<String, Request> calledRequests;//招唤中的请求
-    private Map<String, Request> tookRequests;//乘梯中请求
-    private Set<RobotId> whiteList; //
-    private Set<RobotId> notified; //当目标楼层到达时，已通知的机器人会进入该集合。机器响应（包括进梯、出梯或者主动释放开门）都会移出。集合为0时，释放开门
+    private Floor currentFloor;
+    private ElevatorState state;
+    private Map<Long, TakingRequest> takingRequests;//乘梯请求
+    private Set<Passenger> passengers;
+    private Set<Passenger> notifiedPassengers;
 
-    public Elevator(ElevatorId id, Floor highest, Floor lowest, State state, Map<String, Request> calledRequests, Map<String, Request> tookRequests,
-                    Set<RobotId> whiteList, Set<RobotId> notified) {
+    public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor, ElevatorState state, Map<Long, TakingRequest> takingRequests, Set<Passenger> passengers, Set<Passenger> notifiedPassengers) {
         super(id);
+        this.name = name;
         this.highest = highest;
         this.lowest = lowest;
+        this.currentFloor = currentFloor;
         this.state = state;
-        this.calledRequests = calledRequests;
-        this.tookRequests = tookRequests;
-        this.whiteList = whiteList;
-        this.notified = notified;
+        this.takingRequests = takingRequests;
+        this.passengers = passengers;
+        this.notifiedPassengers = notifiedPassengers;
     }
 
-    public static Elevator of(ElevatorId elevatorId, Floor highest, Floor lowest) {
-        return new Elevator(elevatorId, highest, lowest, State.IN_SERVICE, new HashMap<>(), new HashMap<>(),
-                new HashSet<>(0), new HashSet<>(0));
-    }
-
-    public void accept(Request request) {
-        if (State.OUT_OF_SERVICE.equals(this.state)) {
-            throw new ElevatorOutOfServiceException(id());
+    public static Elevator create(@NonNull String name, int highest, int lowest, @NonNull String modelId, @NonNull String sn) {
+        if (lowest > highest) {
+            throw new IllegalArgumentException(String.format("最低楼层【%s】不能大于最高楼层【%s】", lowest, highest));
         }
-        if (this.calledRequests.get(request.getRobotId().value()) != null || this.tookRequests.get(request.getRobotId().value()) != null) {
-            throw new RequestAlreadyExistException(request.getRobotId(), id());
-        }
-        this.calledRequests.put(request.getRobotId().value(), request);
-        log.debug("等待调度的乘梯请求:{}", this.calledRequests);
-        ServiceLocator.service(EventPublisher.class).publish(new RequestSummitedEvent(id(), request));
+        Long id = ServiceLocator.service(UidGenerator.class).nextId();
+        ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(id, modelId, sn));
+        return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null, ElevatorState.NONE, new HashMap<>(), new HashSet<>(), new HashSet<>());
     }
 
-    // 当电梯到达时，通知相关机器人进出电梯
-    public void arrive(Floor floor) {
-        //先出后进
-        noticeRobotToLeave(floor);
-        noticeRobotToEnter(floor);
-        if (this.notified.isEmpty()) {
-            ServiceLocator.service(EventPublisher.class).publish(new ElevatorDoorReleasedEvent(id()));
+    public void tellIn() {
+        if (ElevatorState.WAITING_OUT.equals(state)) {
+            this.state = ElevatorState.WAITING_IN;
+            tell();
+            if (this.notifiedPassengers.isEmpty()) {
+                log.debug("没有乘客进电梯【{}】...", id());
+                ServiceLocator.service(EventPublisher.class).publish(new NoPassengerEvent(id()));
+                this.state = ElevatorState.NONE;
+            } else {
+                log.debug("正在等待乘客进电梯【{}】...", id());
+            }
         }
     }
 
-    private void noticeRobotToEnter(Floor floor) {
-        //通知机器人进梯
-        //todo 后续针对多机一梯，多机多梯时，不能通知所有电梯，而是根据排队通知，如果允许一次多机乘梯时，还需要考虑先进后出，后进进先出原则
-        log.debug("正在通知机器人进电梯【{}】...", id());
-        Optional.ofNullable(this.calledRequests).orElse(new HashMap<>()).values().forEach(
-                request -> {
-//                    if (request.matchFrom(floor, direction)) {
-                    if (request.matchFrom(floor)) {
-                        ServiceLocator.service(EventPublisher.class).publish(new ElevatorArrivedEvent(request.getRobotId(), true));
-                        this.notified.add(request.getRobotId());
-                    }
-                }
-        );
+    private void tellOut() {
+        if (ElevatorState.NONE.equals(state)) {
+            this.state = ElevatorState.WAITING_OUT;
+            tell();
+            if (this.notifiedPassengers.isEmpty()) {
+                log.debug("没有乘客需要出电梯【{}】...", id());
+                tellIn();
+            } else {
+                log.debug("正在等待乘客出电梯【{}】...", id());
+            }
+        }
     }
 
-    private void noticeRobotToLeave(Floor floor) {
-        //通知机器人出梯
-        log.debug("正在通知机器人出电梯【{}】...", id());
-        Optional.ofNullable(this.tookRequests).orElse(new HashMap<>()).values().forEach(
-                request -> {
-                    if (request.matchTo(floor)) {
-                        ServiceLocator.service(EventPublisher.class).publish(new ElevatorArrivedEvent(request.getRobotId(), false));
-                        this.notified.add(request.getRobotId());
+    private void tell() {
+        Optional.ofNullable(this.takingRequests).orElse(Map.of()).values().forEach(
+                takingRequest -> {
+                    if (takingRequest.action(state, getCurrentFloor())) {
+                        this.notifiedPassengers.add(takingRequest.getPassenger());
                     }
                 }
         );
     }
 
     public boolean isValid(Floor... floors) {
-        return Arrays.stream(floors).anyMatch(floor -> floor.compareTo(lowest) >= 0 && floor.compareTo(highest) <= 0);
+        return Arrays.stream(floors).allMatch(floor -> lowest.compareTo(floor) <= 0 && highest.compareTo(floor) >= 0);
     }
 
-    public void cancelRequest(RobotId robotId) {
-        //todo 如果机器人无法出梯，且确保安全后，释放电梯，梯控请求是否仍保留
-        Request request = this.calledRequests.remove(robotId.value());
-        if (request != null) {//当机器人主动释放电梯时，表示机器人乘梯失败。如果需要继续乘梯，需重新招唤电梯
-            respondFrom(robotId);
+    public TakingRequestHistory cancelTakingRequest(Passenger passenger, String cause) {
+        if (!isBinding(passenger)) {
+            throw new PassengerNotAllowedException(passenger, id());
+        }
+        TakingRequest takingRequest = this.takingRequests.remove(passenger.getId());
+        if (Objects.isNull(takingRequest)) {
+            log.warn("找不到该乘客【{}】乘梯【{}】请求", passenger, id());
+            throw new TakingRequestNotFoundException(passenger, id());
+        }
+        takingRequest.cancel(cause);
+        respondFrom(passenger);
+        return TakingRequestHistory.create(takingRequest, id());
+    }
+
+
+    public TakingRequestHistory finish(Passenger passenger) {
+        if (!isBinding(passenger)) {
+            throw new PassengerNotAllowedException(passenger, id());
+        }
+        if (ElevatorState.NONE.equals(state)) {
+            throw new IllegalStateException(String.format("电梯【%s】状态为【%s】，不能接受完成请求", id(), this.state));
+        }
+        TakingRequest takingRequest = this.takingRequests.get(passenger.getId());
+        if (Objects.isNull(takingRequest)) {
+            log.warn("找不到该乘客【{}】乘梯【{}】请求", passenger, id());
+            throw new TakingRequestNotFoundException(passenger, id());
+        }
+        takingRequest.finish(this.state);
+        respondFrom(passenger);
+        if (ElevatorState.WAITING_OUT.equals(this.state)) {
+            return TakingRequestHistory.create(this.takingRequests.remove(passenger.getId()), id());
         } else {
-            log.warn("找不到该机器人【" + robotId + "】搭乘此电梯【" + id() + "】，系统将忽略该请求");
+            return null;
         }
     }
 
-    private void respondFrom(RobotId robotId) {
-        this.notified.remove(robotId);
-        if (this.notified.isEmpty()) {
-            ServiceLocator.service(EventPublisher.class).publish(new ElevatorDoorReleasedEvent(id()));
+    public boolean isBinding(Passenger passenger) {
+        return this.passengers.contains(passenger);
+    }
+
+
+    private void respondFrom(Passenger passenger) {
+        if (this.notifiedPassengers.remove(passenger) && this.notifiedPassengers.isEmpty()) {
+            if (ElevatorState.WAITING_OUT.equals(this.state)) {
+                ServiceLocator.service(EventPublisher.class).publish(new AllPassengerOutRespondedEvent(id()));
+            } else {
+                ServiceLocator.service(EventPublisher.class).publish(new AllPassengerInRespondedEvent(id()));
+                this.state = ElevatorState.NONE;
+            }
         }
     }
 
-    public void unbind(RobotId robotId) {
-        if (!this.whiteList.remove(robotId)) {
-            log.warn("机器人【{}】与该电梯【{}】未存在绑定关系", robotId, id());
+    public void unbind(@NonNull Passenger passenger) {
+        if (!this.passengers.remove(passenger)) {
+            log.warn("该乘客【{}】与该电梯【{}】未存在绑定关系", passenger, id());
         }
 
     }
 
-    public void bind(RobotId robotId) {
-        if (!this.whiteList.add(robotId)) {
-            log.warn("机器人【{}】已经绑定到这台电梯【{}】", robotId, id());
+    public void bind(@NonNull Passenger passenger) {
+        if (!this.passengers.add(passenger)) {
+            log.warn("该乘客【{}】已经绑定到这台电梯【{}】", passenger, id());
         }
     }
 
-    public void enter(Robot robot) {
-        if (!canEnter(robot.id())) {
-            throw new RobotNotAllowedEnterException(robot.id(), id());
+    public void take(@NonNull Passenger passenger, @NonNull Floor from, @NonNull Floor to) {
+        if (this.takingRequests.containsKey(passenger.getId())) {
+            throw new TakingRequestAlreadyExistException(passenger, id());
         }
-        Request request = this.calledRequests.remove(robot.id().value());
-        if (request == null) {
-            log.warn("找不到该机器【{}】乘梯【{}】请求", robot.id(), id());
-            throw new RequestNotFoundException(robot.id(), id());
-        }
-        this.tookRequests.put(request.getRobotId().value(), request);
-        robot.enter(id());
-        respondFrom(robot.id());
+        TakingRequest takingRequest = TakingRequest.create(passenger, from, to);
+        this.takingRequests.put(passenger.getId(), takingRequest);
+        log.debug("等待调度的乘梯请求:{}", this.takingRequests);
+        ServiceLocator.service(EventPublisher.class).publish(new TakingRequestAcceptedEvent(id(), takingRequest));
     }
 
-    public boolean canEnter(RobotId robotId) {
-        return this.whiteList.contains(robotId);
+    public void passengerOutIn() {
+        tellOut();
     }
 
-    public void leave(Robot robot) {
-        Request request = this.tookRequests.remove(robot.id().value());
-        if (request == null) {
-            log.warn("找不到该机器【{}】乘梯【{}】请求", robot.id(), id());
-            throw new RequestNotFoundException(robot.id(), id());
-        }
-        robot.leave(id());
-        ServiceLocator.service(EventPublisher.class).publish(new RobotLeftEvent(id(), request));
-        respondFrom(robot.id());
+    public void arrive(@NonNull Floor floor) {
+        this.currentFloor = floor;
     }
 
-    public void accept(RobotId robotId, Floor from, Floor to) {
-        accept(Request.of(robotId, from, to));
+    public void reset() {
+        this.state = ElevatorState.NONE;
+        this.notifiedPassengers.clear();
     }
 }

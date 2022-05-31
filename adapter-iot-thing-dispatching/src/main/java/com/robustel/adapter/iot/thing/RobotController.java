@@ -1,13 +1,13 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.domain.elevator.ElevatorArrivedEvent;
-import com.robustel.dispatching.domain.robot.RobotId;
+import com.robustel.dispatching.domain.elevator.PassengerInEvent;
+import com.robustel.dispatching.domain.elevator.PassengerOutEvent;
 import com.robustel.thing.application.ExecutingInstructionApplication;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author YangXuehong
@@ -22,22 +22,23 @@ public class RobotController {
         this.executingInstructionApplication = executingInstructionApplication;
     }
 
-    public void enter(RobotId robotId) {
-        log.debug("请机器人【{}】进梯", robotId);
-        executingInstructionApplication.doExecuteInstruction(robotId.value(), "enter", new HashMap<>());
+    public void in(Long robotId) {
+        log.debug("请乘客【{}】进梯", robotId);
+        executingInstructionApplication.doExecuteInstruction(String.valueOf(robotId), "enter", Map.of());
     }
 
-    public void leave(RobotId robotId) {
-        log.debug("请机器人【{}】出梯", robotId);
-        executingInstructionApplication.doExecuteInstruction(robotId.value(), "leave", new HashMap<>());
+    public void out(Long robotId) {
+        log.debug("请乘客【{}】出梯", robotId);
+        executingInstructionApplication.doExecuteInstruction(String.valueOf(robotId), "leave", Map.of());
     }
 
     @Subscribe
-    public void listenOn(ElevatorArrivedEvent event) {
-        if (event.isEnterOrLeave()) {
-            enter(event.getRobotId());
-        } else {
-            leave(event.getRobotId());
-        }
+    public void listenOnOut(PassengerOutEvent event) {
+        out(event.getPassenger().getId());
+    }
+
+    @Subscribe
+    public void listenOnIn(PassengerInEvent event) {
+        in(event.getPassenger().getId());
     }
 }

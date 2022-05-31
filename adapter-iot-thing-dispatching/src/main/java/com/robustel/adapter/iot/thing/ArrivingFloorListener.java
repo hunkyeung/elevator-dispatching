@@ -1,8 +1,7 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.application.ArrivingFloorApplication;
-import com.robustel.dispatching.domain.elevator.ElevatorId;
+import com.robustel.dispatching.application.TellingPassengerOutInApplication;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.rule.domain.matched_event.MatchedEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +20,10 @@ public class ArrivingFloorListener {
     @Value("${robustel.elevator-dispatching.app-name}")
     private String appName;
 
-    private final ArrivingFloorApplication arrivingFloorApplication;
+    private final TellingPassengerOutInApplication tellingPassengerOutInApplication;
 
-    public ArrivingFloorListener(ArrivingFloorApplication arrivingFloorApplication) {
-        this.arrivingFloorApplication = arrivingFloorApplication;
+    public ArrivingFloorListener(TellingPassengerOutInApplication tellingPassengerOutInApplication) {
+        this.tellingPassengerOutInApplication = tellingPassengerOutInApplication;
     }
 
     @Subscribe
@@ -33,7 +32,7 @@ public class ArrivingFloorListener {
             Map properties = ((Map) event.getFact().get("properties"));
             int floor = Integer.valueOf((String) properties.get("floor"));
             log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
-            arrivingFloorApplication.doArrive(ElevatorId.of(event.getInstanceId()), Floor.of(floor));
+            tellingPassengerOutInApplication.doArrive(Long.valueOf(event.getInstanceId()), Floor.of(floor));
         }
     }
 }

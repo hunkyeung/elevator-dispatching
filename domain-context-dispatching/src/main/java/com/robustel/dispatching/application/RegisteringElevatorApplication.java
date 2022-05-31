@@ -1,16 +1,9 @@
 package com.robustel.dispatching.application;
 
-import com.robustel.ddd.service.EventPublisher;
-import com.robustel.ddd.service.ServiceLocator;
-import com.robustel.dispatching.domain.elevator.*;
+import com.robustel.dispatching.domain.elevator.Elevator;
+import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author YangXuehong
@@ -24,25 +17,16 @@ public class RegisteringElevatorApplication {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public String doRegister(Command command) {
-        ElevatorId elevatorId;
-        if (StringUtils.isBlank(command.getElevatorId())) {
-            elevatorId = ElevatorId.of(UUID.randomUUID().toString());
-        } else {
-            elevatorId = ElevatorId.of(command.getElevatorId());
-        }
-        Elevator elevator = Elevator.of(elevatorId, Floor.of(command.getHighest()), Floor.of(command.getLowest()));
+    public Long doRegister(Command command) {
+        Elevator elevator = Elevator.create(command.getName(),
+                command.getHighest(), command.getLowest(), command.getModelId(), command.getSn());
         elevatorRepository.save(elevator);
-        Map<String, Serializable> params = new HashMap<>();
-        params.put("modelId", command.getModelId());
-        params.put("sn", command.getSn());
-        ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(elevatorId, params));
-        return elevator.id().value();
+        return elevator.id();
     }
 
     @Getter
     public static class Command {
-        private String elevatorId;
+        private String name;
         private int highest;
         private int lowest;
         private String modelId;

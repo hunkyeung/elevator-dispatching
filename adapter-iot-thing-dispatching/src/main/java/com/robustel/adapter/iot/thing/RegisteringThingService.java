@@ -6,15 +6,7 @@ import com.robustel.dispatching.domain.robot.RobotRegisteredEvent;
 import com.robustel.thing.application.registering_thing.RegisterThingCommand;
 import com.robustel.thing.application.registering_thing.RegisteringDirectThingApplication;
 import com.robustel.thing.application.registering_thing.RegisteringIndirectThingApplication;
-import com.robustel.thing.domain.thing.CloudProperty;
-import com.robustel.thing.domain.thing.Tag;
-import com.robustel.thing.domain.thing_model.ChannelType;
-import com.robustel.thing.domain.thing_model.TriggerAndEdgeKey;
 import org.springframework.stereotype.Component;
-
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author YangXuehong
@@ -32,29 +24,21 @@ public class RegisteringThingService {
 
     @Subscribe
     public void registerElevator(ElevatorRegisteredEvent event) {
-        String thingId = String.valueOf(event.getElevatorId().value());
-        registerIndirectThing(thingId, event.getParams());
+        String thingId = String.valueOf(event.getElevatorId());
+        RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
+                null, null, null
+                , null, null
+                , event.getModelId(), event.getSn());
+        registeringIndirectThingApplication.doRegisterIndirectThing(command);
     }
 
     @Subscribe
     public void registerRobot(RobotRegisteredEvent event) {
-        String thingId = String.valueOf(event.getRobotId().value());
-        registerDirectThing(thingId, event.getParams());
-    }
-
-    public void registerIndirectThing(String thingId, Map<String, Serializable> params) {
+        String thingId = String.valueOf(event.getRobotId());
         RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
-                (String) params.get("area"), (ChannelType) params.get("channelType"), (Set<Tag>) params.get("tags")
-                , (Set<CloudProperty>) params.get("properties"), (Set<TriggerAndEdgeKey>) params.get("triggerAndEdgeKeys")
-                , (String) params.get("modelId"), (String) params.get("sn"));
-        registeringIndirectThingApplication.doRegisterIndirectThing(command);
-    }
-
-    public void registerDirectThing(String thingId, Map<String, Serializable> params) {
-        RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
-                (String) params.get("area"), (ChannelType) params.get("channelType"), (Set<Tag>) params.get("tags")
-                , (Set<CloudProperty>) params.get("properties"), (Set<TriggerAndEdgeKey>) params.get("triggerAndEdgeKeys")
-                , (String) params.get("modelId"), (String) params.get("sn"));
+                null, null, null
+                , null, null
+                , event.getModelId(), null);
         registeringDirectThingApplication.doRegisterDirectThing(command);
     }
 }

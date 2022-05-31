@@ -1,16 +1,12 @@
 package com.robustel.adapter.resource;
 
-import com.robustel.dispatching.application.FinishingEnteringElevatorApplication;
-import com.robustel.dispatching.application.FinishingLeavingElevatorApplication;
-import com.robustel.dispatching.application.CancelingRequestApplication;
+import com.robustel.dispatching.application.CancelingTakingRequestApplication;
+import com.robustel.dispatching.application.FinishingApplication;
 import com.robustel.dispatching.application.TakingElevatorApplication;
-import com.robustel.dispatching.domain.elevator.ElevatorId;
-import com.robustel.dispatching.domain.robot.RobotId;
 import com.robustel.utils.RestResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -23,34 +19,24 @@ public class RobotResource {
     @Autowired
     private TakingElevatorApplication takingElevatorApplication;
     @Autowired
-    private FinishingEnteringElevatorApplication finishingEnteringElevatorApplication;
+    private FinishingApplication finishingApplication;
     @Autowired
-    private FinishingLeavingElevatorApplication finishingLeavingElevatorApplication;
-    @Autowired
-    private CancelingRequestApplication cancelingRequestApplication;
+    private CancelingTakingRequestApplication cancelingTakingRequestApplication;
 
-    @PutMapping("/robots/{robotId}/taking")
-    public RestResponse<Map<String, Object>> takeElevator(@PathVariable String robotId, @RequestBody TakingElevatorApplication.Command command) {
-        Map<String, Object> results = new HashMap<>();
-        results.put("elevatorId", takingElevatorApplication.doTakeElevator(RobotId.of(robotId), command));
-        return RestResponse.ofSuccess(results);
+    @PostMapping("/requests")
+    public RestResponse<Map<String, Object>> takeElevator(@RequestBody TakingElevatorApplication.Command command) {
+        return RestResponse.ofSuccess(Map.of("elevatorId", takingElevatorApplication.doTakeElevator(command)));
     }
 
-    @PutMapping("/robots/{robotId}/finishing-entering")
-    public RestResponse<Void> enterElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
-        finishingEnteringElevatorApplication.doFinishEnteringElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+    @PutMapping("/elevators/{elevatorId}/requests")
+    public RestResponse<Void> finishInElevator(@PathVariable Long elevatorId, @RequestBody FinishingApplication.Command command) {
+        finishingApplication.doFinish(elevatorId, command);
         return RestResponse.ofSuccessWithoutResult();
     }
 
-    @PutMapping("/robots/{robotId}/finishing-leaving")
-    public RestResponse<Void> leaveElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
-        finishingLeavingElevatorApplication.doFinishLeavingElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
-        return RestResponse.ofSuccessWithoutResult();
-    }
-
-    @PutMapping("/robots/{robotId}/releasing")
-    public RestResponse<Void> releaseDoor(@PathVariable String robotId, @RequestParam String elevatorId) {
-        cancelingRequestApplication.doCancelRequest(RobotId.of(robotId), ElevatorId.of(elevatorId));
+    @DeleteMapping("/elevators/{elevatorId}/requests")
+    public RestResponse<Void> cancelRequest(@PathVariable Long elevatorId, @RequestBody CancelingTakingRequestApplication.Command command) {
+        cancelingTakingRequestApplication.doCancelTakingRequest(elevatorId, command);
         return RestResponse.ofSuccessWithoutResult();
     }
 }

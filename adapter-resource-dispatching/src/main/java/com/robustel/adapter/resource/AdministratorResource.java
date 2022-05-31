@@ -1,15 +1,10 @@
 package com.robustel.adapter.resource;
 
-import com.robustel.dispatching.application.BindingAndUnbindingElevatorApplication;
-import com.robustel.dispatching.application.RegisteringElevatorApplication;
-import com.robustel.dispatching.application.RegisteringRobotApplication;
-import com.robustel.dispatching.domain.elevator.ElevatorId;
-import com.robustel.dispatching.domain.robot.RobotId;
+import com.robustel.dispatching.application.*;
 import com.robustel.utils.RestResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -24,32 +19,38 @@ public class AdministratorResource {
     @Autowired
     private RegisteringElevatorApplication registeringElevatorApplication;
     @Autowired
+    private ResettingElevatorApplication resettingElevatorApplication;
+    @Autowired
     private BindingAndUnbindingElevatorApplication bindingAndUnbindingElevatorApplication;
+    @Autowired
+    private TellingPassengerOutInApplication tellingPassengerOutInApplication;
 
     @PostMapping("/robots")
     public RestResponse<Map<String, Object>> registerRobot(@RequestBody RegisteringRobotApplication.Command command) {
-        Map<String, Object> results = new HashMap<>();
-        results.put("robotId", registeringRobotApplication.doRegister(command));
-        return RestResponse.ofSuccess(results);
+        return RestResponse.ofSuccess(Map.of("robotId", registeringRobotApplication.doRegister(command)));
     }
 
     @PostMapping("/elevators")
     public RestResponse<Map<String, Object>> registerElevator(@RequestBody RegisteringElevatorApplication.Command command) {
-        Map<String, Object> results = new HashMap<>();
-        results.put("elevatorId", registeringElevatorApplication.doRegister(command));
-        return RestResponse.ofSuccess(results);
+        return RestResponse.ofSuccess(Map.of("elevatorId", registeringElevatorApplication.doRegister(command)));
     }
 
-
-    @PutMapping("/robots/{robotId}/binding")
-    public RestResponse<Void> bindElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
-        bindingAndUnbindingElevatorApplication.doBindElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+    @PutMapping("/elevators/{elevatorId}")
+    public RestResponse<Void> resetElevator(@PathVariable Long elevatorId) {
+        resettingElevatorApplication.doResetElevator(elevatorId);
         return RestResponse.ofSuccessWithoutResult();
     }
 
-    @PutMapping("/robots/{robotId}/unbinding")
-    public RestResponse<Void> unbindElevator(@PathVariable String robotId, @RequestParam String elevatorId) {
-        bindingAndUnbindingElevatorApplication.doUnbindElevator(RobotId.of(robotId), ElevatorId.of(elevatorId));
+
+    @PutMapping("/elevators/{elevatorId}/binding")
+    public RestResponse<Void> bindToElevator(@PathVariable Long elevatorId, @RequestParam Long robotId) {
+        bindingAndUnbindingElevatorApplication.doBindToElevator(elevatorId, robotId);
+        return RestResponse.ofSuccessWithoutResult();
+    }
+
+    @DeleteMapping("/elevators/{elevatorId}/binding")
+    public RestResponse<Void> unbindFromElevator(@PathVariable Long elevatorId, @RequestParam Long robotId) {
+        bindingAndUnbindingElevatorApplication.doUnbindFromElevator(elevatorId, robotId);
         return RestResponse.ofSuccessWithoutResult();
     }
 }

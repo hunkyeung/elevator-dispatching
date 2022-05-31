@@ -5,9 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.io.Serializable;
-import java.util.Map;
-
 /**
  * @author YangXuehong
  * @date 2022/4/14
@@ -16,12 +13,12 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class RobotRegisteredEvent extends AbstractEvent {
-    private RobotId robotId;
-    private Map<String, Serializable> params;
+    private Long robotId;
+    private String modelId;
 
-    public RobotRegisteredEvent(RobotId robotId, Map<String, Serializable> params) {
+    public RobotRegisteredEvent(Long robotId, String modelId) {
         super();
         this.robotId = robotId;
-        this.params = params;
+        this.modelId = modelId;
     }
 }

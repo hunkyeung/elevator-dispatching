@@ -5,7 +5,7 @@ import com.robustel.ddd.query.Type;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
-import com.robustel.dispatching.domain.robot.Robot;
+import com.robustel.dispatching.domain.elevator.Passenger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -29,13 +29,13 @@ public class DefaultSelectingElevatorStrategyService implements SelectingElevato
     }
 
     @Override
-    public Elevator selectElevator(Robot robot, Floor from, Floor to) {
-        Query query = new Query.Builder().matching(Type.IN, "whiteList", Arrays.asList(robot.id())).build();
+    public Elevator selectElevator(Passenger passenger, Floor from, Floor to) {
+        Query query = new Query.Builder().matching(Type.IN, "passengers", Arrays.asList(passenger)).build();
         List<Elevator> elevatorList = elevatorRepository.findByCriteria(query).stream().filter(
                 elevator -> elevator.isValid(from, to)
         ).collect(Collectors.toList());
         if (elevatorList.isEmpty()) {
-            throw new NoElevatorAvailableException(robot.id());
+            throw new NoElevatorAvailableException(passenger);
         }
         return elevatorList.get(random.nextInt(elevatorList.size()));
     }

@@ -5,9 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.io.Serializable;
-import java.util.Map;
-
 /**
  * @author YangXuehong
  * @date 2022/4/13
@@ -16,12 +13,14 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 public class ElevatorRegisteredEvent extends AbstractEvent {
-    private final ElevatorId elevatorId;
-    private final Map<String, Serializable> params;
+    private final Long elevatorId;
+    private final String modelId;
+    private final String sn;
 
-    public ElevatorRegisteredEvent(ElevatorId elevatorId, Map<String, Serializable> params) {
+    public ElevatorRegisteredEvent(Long elevatorId, String modelId, String sn) {
         super();
         this.elevatorId = elevatorId;
-        this.params = params;
+        this.modelId = modelId;
+        this.sn = sn;
     }
 }

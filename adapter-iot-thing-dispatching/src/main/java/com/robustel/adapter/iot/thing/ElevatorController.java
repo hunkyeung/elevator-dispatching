@@ -1,10 +1,10 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.domain.elevator.ElevatorDoorReleasedEvent;
-import com.robustel.dispatching.domain.elevator.ElevatorId;
-import com.robustel.dispatching.domain.elevator.Request;
-import com.robustel.dispatching.domain.elevator.RequestSummitedEvent;
+import com.robustel.dispatching.domain.elevator.AllPassengerInRespondedEvent;
+import com.robustel.dispatching.domain.elevator.NoPassengerEvent;
+import com.robustel.dispatching.domain.elevator.TakingRequest;
+import com.robustel.dispatching.domain.elevator.TakingRequestAcceptedEvent;
 import com.robustel.thing.application.ExecutingInstructionApplication;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,30 +25,37 @@ public class ElevatorController {
         this.executingInstructionApplication = executingInstructionApplication;
     }
 
-    public void take(ElevatorId elevatorId, Request request) {
+    public void take(Long elevatorId, TakingRequest takingRequest) {
         Map<String, Object> params = new HashMap<>();
-        params.put("from", request.getFrom().getValue());
-        params.put("to", request.getTo().getValue());
+        params.put("from", takingRequest.getFrom().getValue());
+        params.put("to", takingRequest.getTo().getValue());
         executingInstructionApplication.doExecuteInstruction(
-                String.valueOf(elevatorId.value()),
+                String.valueOf(elevatorId),
                 "take", params);
-        log.debug("机器人【{}】想搭乘电梯【{}】从{}楼到{}楼", request.getRobotId(), elevatorId, request.getFrom().getValue(), request.getTo().getValue());
+        log.debug("乘客【{}】想搭乘电梯【{}】从{}楼到{}楼", takingRequest.getPassenger(), elevatorId, takingRequest.getFrom().getValue(),
+                takingRequest.getTo().getValue());
     }
 
-    public void release(ElevatorId elevatorId) {
+    public void release(Long elevatorId) {
         executingInstructionApplication.doExecuteInstruction(
-                String.valueOf(elevatorId.value()),
-                "release", new HashMap<>());
+                String.valueOf(elevatorId),
+                "release", Map.of());
         log.debug("释放电梯【{}】开门按钮", elevatorId);
     }
 
     @Subscribe
-    public void listenOn(RequestSummitedEvent event) {
-        take(event.getElevatorId(), event.getRequest());
+    public void listenOn(TakingRequestAcceptedEvent event) {
+        take(event.getElevatorId(), event.getTakingRequest());
     }
 
     @Subscribe
-    public void listenOn(ElevatorDoorReleasedEvent event) {
+    public void listenOn(NoPassengerEvent event) {
         release(event.getElevatorId());
     }
+
+    @Subscribe
+    public void listenOn(AllPassengerInRespondedEvent event) {
+        release(event.getElevatorId());
+    }
+
 }

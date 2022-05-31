@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class ElevatorNotFoundException extends DomainException {
 
-    public ElevatorNotFoundException(ElevatorId elevatorId) {
-        super("找不到该电梯【" + elevatorId + "】");
+    public ElevatorNotFoundException(Long elevatorId) {
+        super(String.format("找不到该电梯【%s】", elevatorId));
     }
 }

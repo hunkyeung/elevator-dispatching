@@ -1,19 +1,9 @@
 package com.robustel.dispatching.application;
 
-import com.robustel.ddd.service.EventPublisher;
-import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.dispatching.domain.robot.Robot;
-import com.robustel.dispatching.domain.robot.RobotId;
-import com.robustel.dispatching.domain.robot.RobotRegisteredEvent;
 import com.robustel.dispatching.domain.robot.RobotRepository;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author YangXuehong
@@ -27,24 +17,15 @@ public class RegisteringRobotApplication {
         this.robotRepository = robotRepository;
     }
 
-    public String doRegister(Command command) {
-        RobotId robotId;
-        if (StringUtils.isBlank(command.getRobotId())) {
-            robotId = RobotId.of(UUID.randomUUID().toString());
-        } else {
-            robotId = RobotId.of(command.getRobotId());
-        }
-        Robot robot = new Robot(robotId);
+    public Long doRegister(Command command) {
+        Robot robot = Robot.create(command.getName(), command.getModelId());
         robotRepository.save(robot);
-        Map<String, Serializable> params = new HashMap<>();
-        params.put("modelId", command.getModelId());
-        ServiceLocator.service(EventPublisher.class).publish(new RobotRegisteredEvent(robotId, params));
-        return robot.id().value();
+        return robot.id();
     }
 
     @Getter
     public static class Command {
-        private String robotId;
+        private String name;
         private String modelId;
     }
 }

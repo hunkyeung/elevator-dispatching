@@ -10,10 +10,10 @@ import lombok.Getter;
  */
 @EqualsAndHashCode(callSuper = true)
 @Getter
-public class ElevatorDoorReleasedEvent extends AbstractEvent {
-    private final ElevatorId elevatorId;
+public class AllPassengerInRespondedEvent extends AbstractEvent {
+    private final Long elevatorId;
 
-    public ElevatorDoorReleasedEvent(ElevatorId elevatorId) {
+    public AllPassengerInRespondedEvent(Long elevatorId) {
         this.elevatorId = elevatorId;
     }
 }

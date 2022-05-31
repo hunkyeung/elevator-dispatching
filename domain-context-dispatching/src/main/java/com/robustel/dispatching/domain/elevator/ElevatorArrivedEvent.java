@@ -1,7 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.AbstractEvent;
-import com.robustel.dispatching.domain.robot.RobotId;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -12,10 +11,10 @@ import lombok.Getter;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 public class ElevatorArrivedEvent extends AbstractEvent {
-    private final RobotId robotId;
+    private final Long robotId;
     private final boolean enterOrLeave; // true -> enter;false -> leave
 
-    public ElevatorArrivedEvent(RobotId robotId, boolean enterOrLeave) {
+    public ElevatorArrivedEvent(Long robotId, boolean enterOrLeave) {
         this.robotId = robotId;
         this.enterOrLeave = enterOrLeave;
     }

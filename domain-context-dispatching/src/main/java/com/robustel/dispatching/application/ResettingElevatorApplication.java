@@ -1,25 +1,23 @@
 package com.robustel.dispatching.application;
 
-import com.robustel.dispatching.domain.elevator.*;
+import com.robustel.dispatching.domain.elevator.Elevator;
+import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
+import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import org.springframework.stereotype.Service;
 
-/**
- * @author YangXuehong
- * @date 2022/4/13
- */
 @Service
-public class ArrivingFloorApplication {
+public class ResettingElevatorApplication {
     private final ElevatorRepository elevatorRepository;
 
-    public ArrivingFloorApplication(ElevatorRepository elevatorRepository) {
+    public ResettingElevatorApplication(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public void doArrive(ElevatorId elevatorId, Floor floor) {
+    public void doResetElevator(Long elevatorId) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        elevator.arrive(floor);
+        elevator.reset();
         elevatorRepository.save(elevator);
     }
 }

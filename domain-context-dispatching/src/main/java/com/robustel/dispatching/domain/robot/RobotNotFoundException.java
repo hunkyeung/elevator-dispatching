@@ -9,7 +9,7 @@ import lombok.ToString;
  */
 @ToString(callSuper = true)
 public class RobotNotFoundException extends DomainException {
-    public RobotNotFoundException(RobotId robotId) {
-        super("找不到该机器人【" + robotId + "】");
+    public RobotNotFoundException(Long robotId) {
+        super(String.format("找不到该机器人【%s】", robotId));
     }
 }
