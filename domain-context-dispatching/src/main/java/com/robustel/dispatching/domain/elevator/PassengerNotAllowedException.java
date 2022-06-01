@@ -1,7 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.DomainException;
-import com.robustel.dispatching.domain.elevator.Passenger;
 
 /**
  * @author YangXuehong

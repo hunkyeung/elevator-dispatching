@@ -16,14 +16,6 @@ public class TellingPassengerOutInApplication {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public void doTellPassengerOutIn(Long elevatorId) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
-                () -> new ElevatorNotFoundException(elevatorId)
-        );
-        elevator.passengerOutIn();
-        elevatorRepository.save(elevator);
-    }
-
     public void doArrive(Long elevatorId, Floor floor) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)

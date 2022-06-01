@@ -52,30 +52,25 @@ public class Elevator extends AbstractEntity<Long> {
         return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null, ElevatorState.NONE, new HashMap<>(), new HashSet<>(), new HashSet<>());
     }
 
-    public void tellIn() {
-        if (ElevatorState.WAITING_OUT.equals(state)) {
-            this.state = ElevatorState.WAITING_IN;
-            tell();
-            if (this.notifiedPassengers.isEmpty()) {
-                log.debug("没有乘客进电梯【{}】...", id());
-                ServiceLocator.service(EventPublisher.class).publish(new NoPassengerEvent(id()));
-                this.state = ElevatorState.NONE;
-            } else {
-                log.debug("正在等待乘客进电梯【{}】...", id());
-            }
-        }
+    public void passengerOutIn() {
+        tellOut();
     }
 
     private void tellOut() {
-        if (ElevatorState.NONE.equals(state)) {
-            this.state = ElevatorState.WAITING_OUT;
-            tell();
-            if (this.notifiedPassengers.isEmpty()) {
-                log.debug("没有乘客需要出电梯【{}】...", id());
-                tellIn();
-            } else {
-                log.debug("正在等待乘客出电梯【{}】...", id());
-            }
+        this.state = ElevatorState.WAITING_OUT;
+        tell();
+        if (this.notifiedPassengers.isEmpty()) {
+            this.state = ElevatorState.NONE;
+            tellIn();
+        }
+    }
+
+    public void tellIn() {
+        this.state = ElevatorState.WAITING_IN;
+        tell();
+        if (this.notifiedPassengers.isEmpty()) {
+            this.state = ElevatorState.NONE;
+            ServiceLocator.service(EventPublisher.class).publish(new NoPassengerEvent(id()));
         }
     }
 
@@ -83,6 +78,7 @@ public class Elevator extends AbstractEntity<Long> {
         Optional.ofNullable(this.takingRequests).orElse(Map.of()).values().forEach(
                 takingRequest -> {
                     if (takingRequest.action(state, getCurrentFloor())) {
+                        log.debug(String.format("通知乘客【%s】%s电梯【%s】", takingRequest.getPassenger().getId(), ElevatorState.WAITING_OUT.equals(state) ? "出" : "进", id()));
                         this.notifiedPassengers.add(takingRequest.getPassenger());
                     }
                 }
@@ -115,18 +111,17 @@ public class Elevator extends AbstractEntity<Long> {
         if (ElevatorState.NONE.equals(state)) {
             throw new IllegalStateException(String.format("电梯【%s】状态为【%s】，不能接受完成请求", id(), this.state));
         }
+        if (!this.notifiedPassengers.contains(passenger)) {
+            throw new IllegalStateException(String.format("未通知该乘客【%s】出进梯", passenger.getId()));
+        }
         TakingRequest takingRequest = this.takingRequests.get(passenger.getId());
-        if (Objects.isNull(takingRequest)) {
-            log.warn("找不到该乘客【{}】乘梯【{}】请求", passenger, id());
-            throw new TakingRequestNotFoundException(passenger, id());
-        }
         takingRequest.finish(this.state);
-        respondFrom(passenger);
+        TakingRequestHistory history = null;
         if (ElevatorState.WAITING_OUT.equals(this.state)) {
-            return TakingRequestHistory.create(this.takingRequests.remove(passenger.getId()), id());
-        } else {
-            return null;
+            history = TakingRequestHistory.create(this.takingRequests.remove(passenger.getId()), id());
         }
+        respondFrom(passenger);
+        return history;
     }
 
     public boolean isBinding(Passenger passenger) {
@@ -140,8 +135,8 @@ public class Elevator extends AbstractEntity<Long> {
                 ServiceLocator.service(EventPublisher.class).publish(new AllPassengerOutRespondedEvent(id()));
             } else {
                 ServiceLocator.service(EventPublisher.class).publish(new AllPassengerInRespondedEvent(id()));
-                this.state = ElevatorState.NONE;
             }
+            this.state = ElevatorState.NONE;
         }
     }
 
@@ -166,10 +161,6 @@ public class Elevator extends AbstractEntity<Long> {
         this.takingRequests.put(passenger.getId(), takingRequest);
         log.debug("等待调度的乘梯请求:{}", this.takingRequests);
         ServiceLocator.service(EventPublisher.class).publish(new TakingRequestAcceptedEvent(id(), takingRequest));
-    }
-
-    public void passengerOutIn() {
-        tellOut();
     }
 
     public void arrive(@NonNull Floor floor) {

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 /**
  * @author YangXuehong
@@ -33,7 +32,7 @@ public class DefaultSelectingElevatorStrategyService implements SelectingElevato
         Query query = new Query.Builder().matching(Type.IN, "passengers", Arrays.asList(passenger)).build();
         List<Elevator> elevatorList = elevatorRepository.findByCriteria(query).stream().filter(
                 elevator -> elevator.isValid(from, to)
-        ).collect(Collectors.toList());
+        ).toList();
         if (elevatorList.isEmpty()) {
             throw new NoElevatorAvailableException(passenger);
         }
