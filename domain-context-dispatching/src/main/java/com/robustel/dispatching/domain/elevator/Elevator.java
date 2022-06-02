@@ -157,6 +157,10 @@ public class Elevator extends AbstractEntity<Long> {
         if (this.takingRequests.containsKey(passenger.getId())) {
             throw new TakingRequestAlreadyExistException(passenger, id());
         }
+        //目前只支持一梯一机模式。如果是一梯多机，还需要考虑很多乘梯场景。
+        if (this.takingRequests.size() == 1) {
+            throw new IllegalStateException("当前电梯只支持一梯一机模式，无法同时接受多个乘客同时乘梯请求。");
+        }
         TakingRequest takingRequest = TakingRequest.create(passenger, from, to);
         this.takingRequests.put(passenger.getId(), takingRequest);
         log.debug("等待调度的乘梯请求:{}", this.takingRequests);

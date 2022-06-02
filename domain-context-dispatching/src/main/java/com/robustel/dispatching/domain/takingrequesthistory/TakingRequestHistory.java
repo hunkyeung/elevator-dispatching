@@ -19,13 +19,13 @@ import java.time.Instant;
 public class TakingRequestHistory extends AbstractEntity<Long> {
     private TakingRequest takingRequest;
     private Long elevatorId;
-    private Instant finishedOn;
+    private Instant archivedOn;
 
-    public TakingRequestHistory(Long id, TakingRequest takingRequest, Long elevatorId, Instant finishedOn) {
+    public TakingRequestHistory(Long id, TakingRequest takingRequest, Long elevatorId, Instant archivedOn) {
         super(id);
         this.takingRequest = takingRequest;
         this.elevatorId = elevatorId;
-        this.finishedOn = finishedOn;
+        this.archivedOn = archivedOn;
     }
 
     public static TakingRequestHistory create(@NonNull TakingRequest takingRequest, @NonNull Long elevatorId) {

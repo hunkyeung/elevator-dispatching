@@ -23,7 +23,7 @@ class TakingRequestHistoryTest {
         assertEquals(1L, takingRequestHistory.id());
         assertNotNull(takingRequestHistory.getTakingRequest());
         assertEquals(1L, takingRequestHistory.getElevatorId());
-        assertEquals(Instant.EPOCH, takingRequestHistory.getFinishedOn());
+        assertEquals(Instant.EPOCH, takingRequestHistory.getArchivedOn());
     }
 
     @Test
@@ -40,7 +40,7 @@ class TakingRequestHistoryTest {
         assertNotNull(of.id());
         assertNotNull(of.getTakingRequest());
         assertEquals(1L, of.getElevatorId());
-        assertEquals(Instant.now().truncatedTo(ChronoUnit.SECONDS), of.getFinishedOn().truncatedTo(ChronoUnit.SECONDS));
+        assertEquals(Instant.now().truncatedTo(ChronoUnit.SECONDS), of.getArchivedOn().truncatedTo(ChronoUnit.SECONDS));
     }
 
 }
