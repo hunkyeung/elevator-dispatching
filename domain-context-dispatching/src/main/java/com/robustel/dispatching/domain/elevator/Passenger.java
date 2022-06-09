@@ -8,13 +8,13 @@ import lombok.*;
 @EqualsAndHashCode
 @NoArgsConstructor
 public class Passenger implements ValueObject {
-    private Long id;
+    private String id;
 
-    public Passenger(Long id) {
+    public Passenger(String id) {
         this.id = id;
     }
 
-    public static Passenger of(@NonNull Long id) {
+    public static Passenger of(@NonNull String id) {
         return new Passenger(id);
     }
 }

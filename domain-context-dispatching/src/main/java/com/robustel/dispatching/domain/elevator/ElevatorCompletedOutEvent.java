@@ -5,14 +5,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-@Getter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class AllPassengerOutRespondedEvent extends AbstractEvent {
+@Getter
+public class ElevatorCompletedOutEvent extends AbstractEvent {
+    private Elevator elevator;
 
-    private final Long elevatorId;
-
-    public AllPassengerOutRespondedEvent(Long elevatorId) {
-        this.elevatorId = elevatorId;
+    public ElevatorCompletedOutEvent(Elevator elevator) {
+        this.elevator = elevator;
     }
 }

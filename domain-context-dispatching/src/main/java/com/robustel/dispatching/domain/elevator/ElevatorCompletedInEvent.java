@@ -8,10 +8,11 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @Getter
 @EqualsAndHashCode(callSuper = true)
-public class NoPassengerEvent extends AbstractEvent {
-    private final Long elevatorId;
+public class ElevatorCompletedInEvent extends AbstractEvent {
+    private Elevator elevator;
 
-    public NoPassengerEvent(Long elevatorId) {
-        this.elevatorId = elevatorId;
+    public ElevatorCompletedInEvent(Elevator elevator) {
+        this.elevator = elevator;
     }
 }
+

@@ -8,8 +8,8 @@ import lombok.ToString;
  * @date 2022/4/19
  */
 @ToString(callSuper = true)
-public class TakingRequestNotFoundException extends DomainException {
-    public TakingRequestNotFoundException(Passenger passenger, Long elevatorId) {
+public class RequestNotFoundException extends DomainException {
+    public RequestNotFoundException(Passenger passenger, Long elevatorId) {
         super(String.format("找不到该乘客【%s】乘梯【%s】请求", passenger, elevatorId));
     }
 }

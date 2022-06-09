@@ -22,12 +22,12 @@ public class RobotController {
         this.executingInstructionApplication = executingInstructionApplication;
     }
 
-    public void in(Long robotId) {
+    public void in(String robotId) {
         log.debug("请乘客【{}】进梯", robotId);
         executingInstructionApplication.doExecuteInstruction(String.valueOf(robotId), "enter", Map.of());
     }
 
-    public void out(Long robotId) {
+    public void out(String robotId) {
         log.debug("请乘客【{}】出梯", robotId);
         executingInstructionApplication.doExecuteInstruction(String.valueOf(robotId), "leave", Map.of());
     }

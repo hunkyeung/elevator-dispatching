@@ -12,12 +12,12 @@ import lombok.ToString;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TakingRequestAcceptedEvent extends AbstractEvent {
+public class RequestAcceptedEvent extends AbstractEvent {
     private final Long elevatorId;
-    private final TakingRequest takingRequest;
+    private final Request request;
 
-    public TakingRequestAcceptedEvent(Long elevatorId, TakingRequest takingRequest) {
+    public RequestAcceptedEvent(Long elevatorId, Request request) {
         this.elevatorId = elevatorId;
-        this.takingRequest = takingRequest;
+        this.request = request;
     }
 }

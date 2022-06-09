@@ -4,8 +4,8 @@ import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
-import com.robustel.dispatching.domain.takingrequesthistory.TakingRequestHistory;
-import com.robustel.dispatching.domain.takingrequesthistory.TakingRequestHistoryRepository;
+import com.robustel.dispatching.domain.requesthistory.RequestHistory;
+import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,20 +21,20 @@ import java.util.Objects;
 @Service
 public class FinishingApplication {
     private final ElevatorRepository elevatorRepository;
-    private final TakingRequestHistoryRepository takingRequestHistoryRepository;
+    private final RequestHistoryRepository requestHistoryRepository;
 
-    public FinishingApplication(ElevatorRepository elevatorRepository, TakingRequestHistoryRepository takingRequestHistoryRepository) {
+    public FinishingApplication(ElevatorRepository elevatorRepository, RequestHistoryRepository requestHistoryRepository) {
         this.elevatorRepository = elevatorRepository;
-        this.takingRequestHistoryRepository = takingRequestHistoryRepository;
+        this.requestHistoryRepository = requestHistoryRepository;
     }
 
     public void doFinish(Long elevatorId, Command command) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        TakingRequestHistory takingRequestHistory = elevator.finish(command.getPassenger());
-        if (!Objects.isNull(takingRequestHistory)) {
-            takingRequestHistoryRepository.save(takingRequestHistory);
+        RequestHistory requestHistory = elevator.finish(command.getPassenger());
+        if (!Objects.isNull(requestHistory)) {
+            requestHistoryRepository.save(requestHistory);
         }
         elevatorRepository.save(elevator);
     }

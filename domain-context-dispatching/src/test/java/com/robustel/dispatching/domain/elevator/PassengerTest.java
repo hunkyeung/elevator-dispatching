@@ -9,9 +9,9 @@ class PassengerTest {
 
     @Test
     void Given_Normal_When_Of_Then_GetWhatYouSet() {
-        Passenger passenger = Passenger.of(1L);
-        assertEquals(1L, passenger.getId());
-        assertEquals(Passenger.of(1L), passenger);
+        Passenger passenger = Passenger.of("1");
+        assertEquals("1", passenger.getId());
+        assertEquals(Passenger.of("1"), passenger);
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.robustel.adapter.resource;
 
-import com.robustel.dispatching.application.CancelingTakingRequestApplication;
+import com.robustel.dispatching.application.CancelingRequestApplication;
 import com.robustel.dispatching.application.FinishingApplication;
 import com.robustel.dispatching.application.TakingElevatorApplication;
 import com.robustel.utils.RestResponse;
@@ -21,7 +21,7 @@ public class RobotResource {
     @Autowired
     private FinishingApplication finishingApplication;
     @Autowired
-    private CancelingTakingRequestApplication cancelingTakingRequestApplication;
+    private CancelingRequestApplication cancelingRequestApplication;
 
     @PostMapping("/requests")
     public RestResponse<Map<String, Object>> takeElevator(@RequestBody TakingElevatorApplication.Command command) {
@@ -29,14 +29,14 @@ public class RobotResource {
     }
 
     @PutMapping("/elevators/{elevatorId}/requests")
-    public RestResponse<Void> finishInElevator(@PathVariable Long elevatorId, @RequestBody FinishingApplication.Command command) {
+    public RestResponse<Void> finish(@PathVariable Long elevatorId, @RequestBody FinishingApplication.Command command) {
         finishingApplication.doFinish(elevatorId, command);
         return RestResponse.ofSuccessWithoutResult();
     }
 
     @DeleteMapping("/elevators/{elevatorId}/requests")
-    public RestResponse<Void> cancelRequest(@PathVariable Long elevatorId, @RequestBody CancelingTakingRequestApplication.Command command) {
-        cancelingTakingRequestApplication.doCancelTakingRequest(elevatorId, command);
+    public RestResponse<Void> cancelRequest(@PathVariable Long elevatorId, @RequestBody CancelingRequestApplication.Command command) {
+        cancelingRequestApplication.doCancelRequest(elevatorId, command);
         return RestResponse.ofSuccessWithoutResult();
     }
 }

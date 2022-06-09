@@ -1,7 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.AbstractEntity;
-import com.robustel.ddd.service.EventPublisher;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import lombok.*;
@@ -19,7 +18,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class TakingRequest extends AbstractEntity<Long> {
+public class Request extends AbstractEntity<Long> {
     private Passenger passenger;
     private Floor from;
     private Floor to;
@@ -28,7 +27,7 @@ public class TakingRequest extends AbstractEntity<Long> {
     private Instant out;
     private String status;
 
-    public TakingRequest(Long id, Passenger passenger, Floor from, Floor to, Instant at, Instant in, Instant out, String status) {
+    public Request(Long id, Passenger passenger, Floor from, Floor to, Instant at, Instant in, Instant out, String status) {
         super(id);
         this.passenger = passenger;
         this.from = from;
@@ -39,12 +38,12 @@ public class TakingRequest extends AbstractEntity<Long> {
         this.status = status;
     }
 
-    public static TakingRequest create(@NonNull Passenger passenger, @NonNull Floor from, @NonNull Floor to) {
+    public static Request create(@NonNull Passenger passenger, @NonNull Floor from, @NonNull Floor to) {
         Long id = ServiceLocator.service(UidGenerator.class).nextId();
         if (from.equals(to)) {
             throw new IllegalArgumentException("出发楼层与目标楼层不能相同");
         }
-        return new TakingRequest(id, passenger, from, to, Instant.now(), null, null, null);
+        return new Request(id, passenger, from, to, Instant.now(), null, null, null);
     }
 
     public void cancel(String cause) {
@@ -52,8 +51,12 @@ public class TakingRequest extends AbstractEntity<Long> {
     }
 
     public void finish(ElevatorState state) {
-        if (ElevatorState.WAITING_IN.equals(state) && Objects.isNull(in)) {
-            this.in = Instant.now();
+        if (ElevatorState.WAITING_IN.equals(state)) {
+            if (Objects.isNull(in)) {
+                this.in = Instant.now();
+            } else {
+                log.debug("该乘客【{}】临时出进梯", getPassenger());
+            }
         } else if (ElevatorState.WAITING_OUT.equals(state) && !Objects.isNull(in) && Objects.isNull(out)) {
             this.out = Instant.now();
         } else {
@@ -61,15 +64,20 @@ public class TakingRequest extends AbstractEntity<Long> {
         }
     }
 
-    public boolean action(ElevatorState state, Floor currentFloor) {
-        if (ElevatorState.WAITING_OUT.equals(state) && to.equals(currentFloor) && !Objects.isNull(in)) {
-            ServiceLocator.service(EventPublisher.class).publish(new PassengerOutEvent(getPassenger()));
-            return true;
-        } else if (ElevatorState.WAITING_IN.equals(state) && from.equals(currentFloor) && Objects.isNull(in)) {
-            ServiceLocator.service(EventPublisher.class).publish(new PassengerInEvent(getPassenger()));
+    public boolean shouldIn(Floor floor, Direction direction) {
+        if (this.from.equals(floor)) {
+            if (Direction.UP.equals(direction)) {
+                return this.from.compareTo(to) < 0;
+            } else if (Direction.DOWN.equals(direction)) {
+                return this.from.compareTo(to) > 0;
+            }
             return true;
         } else {
             return false;
         }
+    }
+
+    public boolean shouldOut(Floor floor) {
+        return this.to.equals(floor) && !Objects.isNull(this.in);
     }
 }

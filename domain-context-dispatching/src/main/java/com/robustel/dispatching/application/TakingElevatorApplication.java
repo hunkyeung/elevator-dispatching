@@ -6,8 +6,11 @@ import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * @author YangXuehong
@@ -25,6 +28,9 @@ public class TakingElevatorApplication {
     }
 
     public Long doTakeElevator(Command command) {
+        if (Objects.equals(command.getFrom(), command.getTo())) {
+            throw new IllegalArgumentException(String.format("出发楼层【%s】和目标楼层【%s】相同", command.getFrom(), command.getTo()));
+        }
         Elevator elevator = selectingElevatorStrategyService.selectElevator(command.getPassenger(), command.getFrom(), command.getTo());
         elevator.take(command.getPassenger(), command.getFrom(), command.getTo());
         elevatorRepository.save(elevator);
@@ -33,8 +39,11 @@ public class TakingElevatorApplication {
 
     @Getter
     public static class Command {
+        @NonNull
         private Passenger passenger;
+        @NonNull
         private Floor from;
+        @NonNull
         private Floor to;
     }
 }

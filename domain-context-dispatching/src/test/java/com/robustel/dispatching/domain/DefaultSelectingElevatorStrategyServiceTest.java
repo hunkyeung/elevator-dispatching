@@ -28,7 +28,7 @@ class DefaultSelectingElevatorStrategyServiceTest {
         when(repository.findByCriteria(any())).thenReturn(List.of());
         DefaultSelectingElevatorStrategyService service = new DefaultSelectingElevatorStrategyService(repository);
         assertThrows(SelectingElevatorStrategyService.NoElevatorAvailableException.class,
-                () -> service.selectElevator(Passenger.of(1L), Floor.of(1), Floor.of(5)));
+                () -> service.selectElevator(Passenger.of("1"), Floor.of(1), Floor.of(5)));
     }
 
     @Test
@@ -38,7 +38,7 @@ class DefaultSelectingElevatorStrategyServiceTest {
                 Elevator.create("bar", 100, -5, "modelId", "1234567890"));
         when(repository.findByCriteria(any())).thenReturn(elevatorList);
         DefaultSelectingElevatorStrategyService service = new DefaultSelectingElevatorStrategyService(repository);
-        Elevator elevator = service.selectElevator(Passenger.of(1L), Floor.of(1), Floor.of(5));
+        Elevator elevator = service.selectElevator(Passenger.of("1"), Floor.of(1), Floor.of(5));
         assertTrue(elevatorList.contains(elevator));
     }
 

@@ -29,9 +29,11 @@ public class DefaultSelectingElevatorStrategyService implements SelectingElevato
 
     @Override
     public Elevator selectElevator(Passenger passenger, Floor from, Floor to) {
-        Query query = new Query.Builder().matching(Type.IN, "passengers", Arrays.asList(passenger)).build();
+        Query query = new Query.Builder()
+                .matching(Type.IN, "passengers", Arrays.asList(passenger))
+                .build();
         List<Elevator> elevatorList = elevatorRepository.findByCriteria(query).stream().filter(
-                elevator -> elevator.isValid(from, to)
+                elevator -> elevator.isMatched(from, to)
         ).toList();
         if (elevatorList.isEmpty()) {
             throw new NoElevatorAvailableException(passenger);

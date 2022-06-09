@@ -1,6 +1,8 @@
 package com.robustel.adapter.resource;
 
 import com.robustel.dispatching.application.*;
+import com.robustel.dispatching.domain.elevator.Direction;
+import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.utils.RestResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +21,12 @@ public class AdministratorResource {
     @Autowired
     private RegisteringElevatorApplication registeringElevatorApplication;
     @Autowired
-    private ResettingElevatorApplication resettingElevatorApplication;
+    private BindingAndUnbindingRobotApplication bindingAndUnbindingRobotApplication;
     @Autowired
-    private BindingAndUnbindingElevatorApplication bindingAndUnbindingElevatorApplication;
+    private ReleaseDoorApplication releaseDoorApplication;
+
     @Autowired
-    private TellingPassengerOutInApplication tellingPassengerOutInApplication;
+    private OpeningDoorApplication openingDoorApplication;
 
     @PostMapping("/robots")
     public RestResponse<Map<String, Object>> registerRobot(@RequestBody RegisteringRobotApplication.Command command) {
@@ -35,22 +38,27 @@ public class AdministratorResource {
         return RestResponse.ofSuccess(Map.of("elevatorId", registeringElevatorApplication.doRegister(command)));
     }
 
-    @PutMapping("/elevators/{elevatorId}")
-    public RestResponse<Void> resetElevator(@PathVariable Long elevatorId) {
-        resettingElevatorApplication.doResetElevator(elevatorId);
+    @PutMapping("/elevators/{elevatorId}/doors")
+    public RestResponse<Void> openDoor(@PathVariable Long elevatorId, @RequestParam Floor floor, @RequestParam Direction nextDirection) {
+        openingDoorApplication.doOpenDoor(elevatorId, floor, nextDirection);
         return RestResponse.ofSuccessWithoutResult();
     }
 
+    @DeleteMapping("/elevators/{elevatorId}/doors")
+    public RestResponse<Void> releaseDoor(@PathVariable Long elevatorId) {
+        releaseDoorApplication.doReleaseDoor(elevatorId);
+        return RestResponse.ofSuccessWithoutResult();
+    }
 
     @PutMapping("/elevators/{elevatorId}/binding")
-    public RestResponse<Void> bindToElevator(@PathVariable Long elevatorId, @RequestParam Long robotId) {
-        bindingAndUnbindingElevatorApplication.doBindToElevator(elevatorId, robotId);
+    public RestResponse<Void> bindToElevator(@PathVariable Long elevatorId, @RequestParam String robotId) {
+        bindingAndUnbindingRobotApplication.doBind(elevatorId, robotId);
         return RestResponse.ofSuccessWithoutResult();
     }
 
     @DeleteMapping("/elevators/{elevatorId}/binding")
-    public RestResponse<Void> unbindFromElevator(@PathVariable Long elevatorId, @RequestParam Long robotId) {
-        bindingAndUnbindingElevatorApplication.doUnbindFromElevator(elevatorId, robotId);
+    public RestResponse<Void> unbindFromElevator(@PathVariable Long elevatorId, @RequestParam String robotId) {
+        bindingAndUnbindingRobotApplication.doUnbind(elevatorId, robotId);
         return RestResponse.ofSuccessWithoutResult();
     }
 }

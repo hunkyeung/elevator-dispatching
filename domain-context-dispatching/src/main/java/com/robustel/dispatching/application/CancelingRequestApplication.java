@@ -4,8 +4,8 @@ import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
-import com.robustel.dispatching.domain.takingrequesthistory.TakingRequestHistory;
-import com.robustel.dispatching.domain.takingrequesthistory.TakingRequestHistoryRepository;
+import com.robustel.dispatching.domain.requesthistory.RequestHistory;
+import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,21 +17,21 @@ import org.springframework.stereotype.Service;
  * @date 2022/4/19
  */
 @Service
-public class CancelingTakingRequestApplication {
+public class CancelingRequestApplication {
     private final ElevatorRepository elevatorRepository;
-    private final TakingRequestHistoryRepository takingRequestHistoryRepository;
+    private final RequestHistoryRepository requestHistoryRepository;
 
-    public CancelingTakingRequestApplication(ElevatorRepository elevatorRepository, TakingRequestHistoryRepository takingRequestHistoryRepository) {
+    public CancelingRequestApplication(ElevatorRepository elevatorRepository, RequestHistoryRepository requestHistoryRepository) {
         this.elevatorRepository = elevatorRepository;
-        this.takingRequestHistoryRepository = takingRequestHistoryRepository;
+        this.requestHistoryRepository = requestHistoryRepository;
     }
 
-    public void doCancelTakingRequest(Long elevatorId, Command command) {
+    public void doCancelRequest(Long elevatorId, Command command) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        TakingRequestHistory takingRequestHistory = elevator.cancelTakingRequest(command.getPassenger(), command.getCause());
-        takingRequestHistoryRepository.save(takingRequestHistory);
+        RequestHistory requestHistory = elevator.cancelRequest(command.getPassenger(), command.getCause());
+        requestHistoryRepository.save(requestHistory);
         elevatorRepository.save(elevator);
     }
 

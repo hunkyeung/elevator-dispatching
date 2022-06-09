@@ -1,10 +1,9 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.domain.elevator.AllPassengerInRespondedEvent;
-import com.robustel.dispatching.domain.elevator.NoPassengerEvent;
-import com.robustel.dispatching.domain.elevator.TakingRequest;
-import com.robustel.dispatching.domain.elevator.TakingRequestAcceptedEvent;
+import com.robustel.dispatching.domain.elevator.ReleaseDoorEvent;
+import com.robustel.dispatching.domain.elevator.Request;
+import com.robustel.dispatching.domain.elevator.RequestAcceptedEvent;
 import com.robustel.thing.application.ExecutingInstructionApplication;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,15 +24,15 @@ public class ElevatorController {
         this.executingInstructionApplication = executingInstructionApplication;
     }
 
-    public void take(Long elevatorId, TakingRequest takingRequest) {
+    public void take(Long elevatorId, Request request) {
         Map<String, Object> params = new HashMap<>();
-        params.put("from", takingRequest.getFrom().getValue());
-        params.put("to", takingRequest.getTo().getValue());
+        params.put("from", request.getFrom().getValue());
+        params.put("to", request.getTo().getValue());
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
                 "take", params);
-        log.debug("乘客【{}】想搭乘电梯【{}】从{}楼到{}楼", takingRequest.getPassenger(), elevatorId, takingRequest.getFrom().getValue(),
-                takingRequest.getTo().getValue());
+        log.debug("乘客【{}】想搭乘电梯【{}】从{}楼到{}楼", request.getPassenger(), elevatorId, request.getFrom().getValue(),
+                request.getTo().getValue());
     }
 
     public void release(Long elevatorId) {
@@ -44,18 +43,14 @@ public class ElevatorController {
     }
 
     @Subscribe
-    public void listenOn(TakingRequestAcceptedEvent event) {
-        take(event.getElevatorId(), event.getTakingRequest());
+    public void listenOn(RequestAcceptedEvent event) {
+        take(event.getElevatorId(), event.getRequest());
     }
 
     @Subscribe
-    public void listenOn(NoPassengerEvent event) {
+    public void listenOn(ReleaseDoorEvent event) {
         release(event.getElevatorId());
     }
 
-    @Subscribe
-    public void listenOn(AllPassengerInRespondedEvent event) {
-        release(event.getElevatorId());
-    }
 
 }
