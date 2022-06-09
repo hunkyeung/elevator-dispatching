@@ -9,7 +9,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 public class ElevatorDoorOpenedEvent extends AbstractEvent {
-    private Elevator elevator;
+    private final Elevator elevator;
 
     public ElevatorDoorOpenedEvent(Elevator elevator) {
         this.elevator = elevator;

@@ -120,9 +120,8 @@ public class Elevator extends AbstractEntity<Long> {
         List<Passenger> toBeTook = this.requests.values().stream()
                 .filter(request -> request.shouldIn(currentFloor, direction))
                 .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
-        int capacity = CAPACITY;
         int fromIndex = 0;
-        int toIndex = toBeTook.size() < capacity ? toBeTook.size() : capacity;
+        int toIndex = Math.min(toBeTook.size(), CAPACITY);
         this.transferStation.addAll(toBeTook.subList(fromIndex, toIndex));
         if (Direction.DOWN.equals(this.direction)) {
             this.toBeNotified = this.requests.values().stream()
