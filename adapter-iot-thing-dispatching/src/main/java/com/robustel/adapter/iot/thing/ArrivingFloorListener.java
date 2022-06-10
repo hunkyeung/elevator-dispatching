@@ -1,7 +1,7 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.application.OpeningDoorApplication;
+import com.robustel.dispatching.application.OpeningTheDoorApplication;
 import com.robustel.dispatching.domain.elevator.Direction;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.rule.domain.matched_event.MatchedEvent;
@@ -21,10 +21,10 @@ public class ArrivingFloorListener {
     @Value("${robustel.elevator-dispatching.app-name}")
     private String appName;
 
-    private final OpeningDoorApplication openingDoorApplication;
+    private final OpeningTheDoorApplication openingTheDoorApplication;
 
-    public ArrivingFloorListener(OpeningDoorApplication openingDoorApplication) {
-        this.openingDoorApplication = openingDoorApplication;
+    public ArrivingFloorListener(OpeningTheDoorApplication openingTheDoorApplication) {
+        this.openingTheDoorApplication = openingTheDoorApplication;
     }
 
     @Subscribe
@@ -34,7 +34,7 @@ public class ArrivingFloorListener {
             int floor = Integer.parseInt((String) properties.get("floor"));
             Direction direction = Direction.valueOf((String) properties.get("direction"));
             log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
-            openingDoorApplication.doOpenDoor(Long.valueOf(event.getInstanceId()), Floor.of(floor), direction);
+            openingTheDoorApplication.doOpenDoor(Long.valueOf(event.getInstanceId()), Floor.of(floor), direction);
         }
     }
 }

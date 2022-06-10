@@ -8,10 +8,10 @@ import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ReleaseDoorApplication {
+public class ReleaseTheDoorApplication {
     private final ElevatorRepository elevatorRepository;
 
-    public ReleaseDoorApplication(ElevatorRepository elevatorRepository) {
+    public ReleaseTheDoorApplication(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
     }
 

@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
  * @date 2022/4/13
  */
 @Service
-public class OpeningDoorApplication {
+public class OpeningTheDoorApplication {
     private final ElevatorRepository elevatorRepository;
 
-    public OpeningDoorApplication(ElevatorRepository elevatorRepository) {
+    public OpeningTheDoorApplication(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
     }
 

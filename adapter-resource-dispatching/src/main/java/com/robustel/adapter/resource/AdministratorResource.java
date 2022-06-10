@@ -23,10 +23,10 @@ public class AdministratorResource {
     @Autowired
     private BindingAndUnbindingRobotApplication bindingAndUnbindingRobotApplication;
     @Autowired
-    private ReleaseDoorApplication releaseDoorApplication;
+    private ReleaseTheDoorApplication releaseTheDoorApplication;
 
     @Autowired
-    private OpeningDoorApplication openingDoorApplication;
+    private OpeningTheDoorApplication openingTheDoorApplication;
 
     @PostMapping("/robots")
     public RestResponse<Map<String, Object>> registerRobot(@RequestBody RegisteringRobotApplication.Command command) {
@@ -40,13 +40,13 @@ public class AdministratorResource {
 
     @PutMapping("/elevators/{elevatorId}/doors")
     public RestResponse<Void> openDoor(@PathVariable Long elevatorId, @RequestParam Floor floor, @RequestParam Direction nextDirection) {
-        openingDoorApplication.doOpenDoor(elevatorId, floor, nextDirection);
+        openingTheDoorApplication.doOpenDoor(elevatorId, floor, nextDirection);
         return RestResponse.ofSuccessWithoutResult();
     }
 
     @DeleteMapping("/elevators/{elevatorId}/doors")
     public RestResponse<Void> releaseDoor(@PathVariable Long elevatorId) {
-        releaseDoorApplication.doReleaseDoor(elevatorId);
+        releaseTheDoorApplication.doReleaseDoor(elevatorId);
         return RestResponse.ofSuccessWithoutResult();
     }
 
