@@ -74,7 +74,7 @@ class ElevatorTest {
         Floor first = Floor.of(1);
         Floor fifth = Floor.of(5);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.STOP,
-                ElevatorState.NONE, Map.of("1", mock(Request.class)), new ArrayList<>(), Set.of(passenger), null, new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.NONE, Map.of("1", mock(Request.class)), new ArrayList<>(), Set.of(passenger), null, new ArrayList<>(), new ArrayList<>());
         assertThrows(RequestAlreadyExistException.class, () -> elevator.take(passenger, first, fifth));
     }
 
@@ -87,7 +87,7 @@ class ElevatorTest {
         Floor first = Floor.of(1);
         Floor fifth = Floor.of(5);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.STOP,
-                ElevatorState.NONE, requests, new ArrayList<>(), Set.of(passenger), null, new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.NONE, requests, new ArrayList<>(), Set.of(passenger), null, new ArrayList<>(), new ArrayList<>());
         elevator.take(Passenger.of("1"), first, fifth);
         assertNotNull(elevator.getRequests().get("1"));
     }
@@ -122,14 +122,14 @@ class ElevatorTest {
     @Test
     void Given_In_When_IsMatched_Then_ReturnFalse() {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(10), Floor.of(-1), null, Direction.STOP,
-                ElevatorState.NONE, Map.of("1", mock(Request.class)), new ArrayList<>(), Set.of(Passenger.of("1")), null, new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.NONE, Map.of("1", mock(Request.class)), new ArrayList<>(), Set.of(Passenger.of("1")), null, new ArrayList<>(), new ArrayList<>());
         assertTrue(elevator.isMatched(Floor.of(-1), Floor.of(10)));
     }
 
     @Test
     void Given_Out_When_IsMatched_Then_ReturnTrue() {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(10), Floor.of(-1), null, Direction.STOP,
-                ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), null, new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), null, new ArrayList<>(), new ArrayList<>());
         assertFalse(elevator.isMatched(Floor.of(-1), Floor.of(20)));
         assertFalse(elevator.isMatched(Floor.of(-6), Floor.of(7)));
     }
@@ -137,7 +137,7 @@ class ElevatorTest {
     @Test
     void Given_When_ReleaseDoor_Then_Expected() {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.STOP,
-                ElevatorState.COMPLETED_IN, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), Passenger.of("1"), new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.COMPLETED_IN, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), Passenger.of("1"), new ArrayList<>(), new ArrayList<>());
         elevator.releaseDoor();
         assertNull(elevator.getNotified());
         assertEquals(ElevatorState.NONE, elevator.getState());
@@ -155,8 +155,8 @@ class ElevatorTest {
         Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), Instant.now(), null, null);
         requests.put("1", firstRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
-        onPassage.push(firstPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(firstPassenger);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerOut();
@@ -185,10 +185,10 @@ class ElevatorTest {
         Request thirdRequest = new Request(3L, thirdPassenger, firstFloor, fifthFloor, Instant.now(), Instant.now(), null, null);
         requests.put("3", thirdRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
-        onPassage.push(firstPassenger);
-        onPassage.push(secondPassenger);
-        onPassage.push(thirdPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(firstPassenger);
+        onPassage.add(secondPassenger);
+        onPassage.add(thirdPassenger);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerOut();
@@ -220,11 +220,11 @@ class ElevatorTest {
         Request forthRequest = new Request(4L, fourthPassenger, Floor.of(2), Floor.of(10), Instant.now(), Instant.now(), null, null);
         requests.put("4", forthRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
-        onPassage.push(firstPassenger);
-        onPassage.push(secondPassenger);
-        onPassage.push(thirdPassenger);
-        onPassage.push(fourthPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(firstPassenger);
+        onPassage.add(secondPassenger);
+        onPassage.add(thirdPassenger);
+        onPassage.add(fourthPassenger);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerOut();
@@ -245,7 +245,7 @@ class ElevatorTest {
         Floor firstFloor = Floor.of(1);
         Floor fifthFloor = Floor.of(5);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.NONE, requests, toBeNotified, Set.of(), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerIn();
@@ -276,7 +276,7 @@ class ElevatorTest {
         Request forthRequest = new Request(4L, fourthPassenger, Floor.of(2), Floor.of(10), null, Instant.now(), null, null);
         requests.put("4", forthRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3), Direction.UP,
                 ElevatorState.COMPLETED_OUT, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger, fourthPassenger), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerIn();
@@ -306,7 +306,7 @@ class ElevatorTest {
         Request forthRequest = new Request(4L, fourthPassenger, Floor.of(2), Floor.of(10), null, Instant.now(), null, null);
         requests.put("4", forthRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), Floor.of(3), Direction.UP,
                 ElevatorState.COMPLETED_OUT, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger, fourthPassenger), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerIn();
@@ -338,7 +338,7 @@ class ElevatorTest {
         Request forthRequest = new Request(4L, fourthPassenger, Floor.of(2), Floor.of(10), null, Instant.now(), null, null);
         requests.put("4", forthRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(20), Floor.of(10), Direction.DOWN,
                 ElevatorState.COMPLETED_OUT, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger, fourthPassenger), null, onPassage, new ArrayList<>());
         elevator.notifyPassengerIn();
@@ -372,7 +372,7 @@ class ElevatorTest {
         Request fifthRequest = new Request(5L, fifthPassenger, Floor.of(12), Floor.of(6), null, Instant.now().minusSeconds(1000), null, null);
         requests.put("5", fifthRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         List<Passenger> transferStation = new ArrayList<>();
         transferStation.add(Passenger.of("5"));
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(20), Floor.of(10), Direction.DOWN,
@@ -400,7 +400,7 @@ class ElevatorTest {
         Request firstRequest = new Request(1L, firstPassenger, Floor.of(10), Floor.of(4), Instant.now(), null, null, null);
         requests.put("1", firstRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         List<Passenger> transferStation = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(20), Floor.of(10), Direction.DOWN,
                 ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger), firstPassenger, onPassage, transferStation);
@@ -416,7 +416,7 @@ class ElevatorTest {
         Request firstRequest = new Request(1L, firstPassenger, Floor.of(10), Floor.of(4), Instant.now(), Instant.now(), null, null);
         requests.put("1", firstRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
-        Deque<Passenger> onPassage = new ArrayDeque<>();
+        List<Passenger> onPassage = new ArrayList<>();
         List<Passenger> transferStation = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(20), Floor.of(10), Direction.DOWN,
                 ElevatorState.WAITING_OUT, requests, toBeNotified, Set.of(firstPassenger), firstPassenger, onPassage, transferStation);
@@ -430,7 +430,7 @@ class ElevatorTest {
     @Test
     void Given_ElevatorStateNoneAndNotExistRequest_When_CancelRequest_Then_Exception() {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.STOP,
-                ElevatorState.COMPLETED_IN, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), Passenger.of("1"), new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.COMPLETED_IN, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), Passenger.of("1"), new ArrayList<>(), new ArrayList<>());
         Passenger passenger = Passenger.of("2");
         assertThrows(RequestNotFoundException.class, () -> elevator.cancelRequest(passenger, "for test"));
     }
@@ -444,7 +444,7 @@ class ElevatorTest {
         Request request = Request.create(passenger, first, fifth);
         requests.put("2", request);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.UP,
-                ElevatorState.NONE, requests, new ArrayList<>(), Set.of(passenger), null, new ArrayDeque<>(), new ArrayList<>());
+                ElevatorState.NONE, requests, new ArrayList<>(), Set.of(passenger), null, new ArrayList<>(), new ArrayList<>());
         RequestHistory history = elevator.cancelRequest(passenger, "for test");
         assertEquals(request, history.getRequest());
         assertNotNull(history.getArchivedOn());
@@ -458,10 +458,10 @@ class ElevatorTest {
         Floor fifth = Floor.of(5);
         Request request = Request.create(passenger, first, fifth);
         requests.put("2", request);
-        Deque<Passenger> onGoing = new ArrayDeque<>();
-        onGoing.push(passenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(passenger);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.UP,
-                ElevatorState.WAITING_OUT, requests, new ArrayList<>(), Set.of(passenger), passenger, onGoing, new ArrayList<>());
+                ElevatorState.WAITING_OUT, requests, new ArrayList<>(), Set.of(passenger), passenger, onPassage, new ArrayList<>());
         RequestHistory history = elevator.cancelRequest(passenger, "for test");
         assertEquals(request, history.getRequest());
         assertNotNull(history.getArchivedOn());
@@ -481,8 +481,8 @@ class ElevatorTest {
         requests.put("2", secondRequest);
         List<Passenger> toBeNotified = new ArrayList<>();
         toBeNotified.add(secondPassenger);
-        Deque<Passenger> onPassage = new ArrayDeque<>();
-        onPassage.push(secondPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(secondPassenger);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.WAITING_OUT, requests, toBeNotified, Set.of(firstPassenger, secondPassenger), firstPassenger, onPassage, new ArrayList<>());
         RequestHistory history = elevator.cancelRequest(firstPassenger, "for test");

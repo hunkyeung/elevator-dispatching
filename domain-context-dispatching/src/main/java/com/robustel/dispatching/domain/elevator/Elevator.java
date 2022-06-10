@@ -30,17 +30,17 @@ public class Elevator extends AbstractEntity<Long> {
     private Floor currentFloor;
     private Direction direction;
     private ElevatorState state;
+    private Set<Passenger> passengers;//乘客绑定电梯
     private Map<String, Request> requests;//乘梯请求
     private List<Passenger> toBeNotified;//待通知乘客列表
-    private Set<Passenger> passengers;//乘客绑定电梯
     private Passenger notified;//当前通知的乘客
-    private Deque<Passenger> onPassage;//乘梯中的乘客
     private List<Passenger> transferStation;//中转乘客
+    private List<Passenger> onPassage;//乘梯中的乘客
 
     public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
                     Direction direction, ElevatorState state, Map<String, Request> requests,
                     List<Passenger> toBeNotified, Set<Passenger> passengers, Passenger notified,
-                    Deque<Passenger> onPassage, List<Passenger> transferStation) {
+                    List<Passenger> onPassage, List<Passenger> transferStation) {
         super(id);
         this.name = name;
         this.highest = highest;
@@ -63,7 +63,7 @@ public class Elevator extends AbstractEntity<Long> {
         Long id = ServiceLocator.service(UidGenerator.class).nextId();
         ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(id, modelId, sn));
         return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null,
-                Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(), null, new ArrayDeque<>(), new ArrayList<>());
+                Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(), null, new ArrayList<>(), new ArrayList<>());
     }
 
     public boolean isBinding(Passenger passenger) {
@@ -123,15 +123,21 @@ public class Elevator extends AbstractEntity<Long> {
         int fromIndex = 0;
         int toIndex = Math.min(toBeTook.size(), CAPACITY);
         this.transferStation.addAll(toBeTook.subList(fromIndex, toIndex));
-        if (Direction.DOWN.equals(this.direction)) {
-            this.toBeNotified = this.requests.values().stream()
-                    .filter(request -> transferStation.contains(request.getPassenger()))
-                    .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
-        } else {
-            this.toBeNotified = this.requests.values().stream()
-                    .filter(request -> transferStation.contains(request.getPassenger()))
-                    .sorted(Comparator.comparing(Request::getTo).reversed()).map(Request::getPassenger).collect(Collectors.toList());
-        }
+        this.toBeNotified = this.requests.values().stream()
+                .filter(request -> transferStation.contains(request.getPassenger()))
+                .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
+        //todo 由于目前无法获取电梯下一时刻运行方向，故只要匹配出发楼层就符合入梯条件。此时先进后进缺少了判断依据，对于一梯多机调度效率会有影响
+        /**
+         if (Direction.DOWN.equals(this.direction)) {
+         this.toBeNotified = this.requests.values().stream()
+         .filter(request -> transferStation.contains(request.getPassenger()))
+         .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
+         } else {
+         this.toBeNotified = this.requests.values().stream()
+         .filter(request -> transferStation.contains(request.getPassenger()))
+         .sorted(Comparator.comparing(Request::getTo).reversed()).map(Request::getPassenger).collect(Collectors.toList());
+         }
+         **/
         this.transferStation.clear();
         log.debug(String.format("准备待通知进梯乘客列表【%s】...", this.toBeNotified));
     }
@@ -164,7 +170,7 @@ public class Elevator extends AbstractEntity<Long> {
             this.state = ElevatorState.COMPLETED_OUT;
             ServiceLocator.service(EventPublisher.class).publish(new ElevatorCompletedOutEvent(this));
         } else {
-            this.notified = this.onPassage.pop();
+            this.notified = new OnPassageStack().pop();
             ServiceLocator.service(EventPublisher.class).publish(new PassengerOutEvent(this.notified));
             if (!toBeNotified.remove(this.notified)) {
                 this.transferStation.add(this.notified);
@@ -183,7 +189,7 @@ public class Elevator extends AbstractEntity<Long> {
         if (ElevatorState.WAITING_OUT.equals(state)) {
             history = RequestHistory.create(this.requests.remove(passenger.getId()), id());
         } else if (ElevatorState.WAITING_IN.equals(state)) {
-            onPassage.push(request.getPassenger());
+            new OnPassageStack().push(request.getPassenger());
         }
         notifyNext();
         return history;
@@ -206,6 +212,16 @@ public class Elevator extends AbstractEntity<Long> {
             notifyNextOut();
         } else if (ElevatorState.WAITING_IN.equals(this.state)) {
             notifyNextIn();
+        }
+    }
+
+    private class OnPassageStack {
+        public Passenger pop() {
+            return onPassage.remove(onPassage.size() - 1);
+        }
+
+        public void push(Passenger passenger) {
+            onPassage.add(passenger);
         }
     }
 }
