@@ -21,7 +21,7 @@ public class AdministratorResource {
     @Autowired
     private RegisteringElevatorApplication registeringElevatorApplication;
     @Autowired
-    private BindingAndUnbindingRobotApplication bindingAndUnbindingRobotApplication;
+    private BindingAndUnbindingPassengerApplication bindingAndUnbindingPassengerApplication;
     @Autowired
     private ReleaseTheDoorApplication releaseTheDoorApplication;
 
@@ -51,14 +51,14 @@ public class AdministratorResource {
     }
 
     @PutMapping("/elevators/{elevatorId}/binding")
-    public RestResponse<Void> bindToElevator(@PathVariable Long elevatorId, @RequestParam String robotId) {
-        bindingAndUnbindingRobotApplication.doBind(elevatorId, robotId);
+    public RestResponse<Void> bindToElevator(@PathVariable Long elevatorId, @RequestParam String passengerId) {
+        bindingAndUnbindingPassengerApplication.doBind(elevatorId, passengerId);
         return RestResponse.ofSuccessWithoutResult();
     }
 
     @DeleteMapping("/elevators/{elevatorId}/binding")
-    public RestResponse<Void> unbindFromElevator(@PathVariable Long elevatorId, @RequestParam String robotId) {
-        bindingAndUnbindingRobotApplication.doUnbind(elevatorId, robotId);
+    public RestResponse<Void> unbindFromElevator(@PathVariable Long elevatorId, @RequestParam String passengerId) {
+        bindingAndUnbindingPassengerApplication.doUnbind(elevatorId, passengerId);
         return RestResponse.ofSuccessWithoutResult();
     }
 }

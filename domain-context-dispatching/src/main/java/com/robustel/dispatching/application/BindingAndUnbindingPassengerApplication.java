@@ -11,18 +11,18 @@ import org.springframework.stereotype.Service;
  * @date 2022/4/21
  */
 @Service
-public class BindingAndUnbindingRobotApplication {
+public class BindingAndUnbindingPassengerApplication {
     private final ElevatorRepository elevatorRepository;
 
-    public BindingAndUnbindingRobotApplication(ElevatorRepository elevatorRepository) {
+    public BindingAndUnbindingPassengerApplication(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public void doBind(Long elevatorId, String robotId) {
+    public void doBind(Long elevatorId, String passengerId) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        elevator.bind(Passenger.of(robotId));
+        elevator.bind(Passenger.of(passengerId));
         elevatorRepository.save(elevator);
     }
 

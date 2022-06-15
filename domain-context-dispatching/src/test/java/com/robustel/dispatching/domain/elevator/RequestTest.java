@@ -3,6 +3,7 @@ package com.robustel.dispatching.domain.elevator;
 import com.robustel.dispatching.domain.InitServiceLocator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -99,6 +100,7 @@ class RequestTest {
     }
 
     @Test
+    @Disabled("since ignore direction")
     void Given_RequestFrom1To5AndCurrentFloor1AndDirectionDown_When_ShouldIn_Then_ReturnTrue() {
         Request request = new Request(1L, Passenger.of("1"), Floor.of(1), Floor.of(5), Instant.now(), null, null, null);
         assertFalse(request.shouldIn(Floor.of(1), Direction.DOWN));
@@ -117,6 +119,7 @@ class RequestTest {
     }
 
     @Test
+    @Disabled("since ignore direction")
     void Given_RequestFrom5To1AndCurrentFloor1AndDirectionUp_When_ShouldIn_Then_ReturnTrue() {
         Request request = new Request(1L, Passenger.of("1"), Floor.of(5), Floor.of(1), Instant.now(), null, null, null);
         assertFalse(request.shouldIn(Floor.of(5), Direction.UP));

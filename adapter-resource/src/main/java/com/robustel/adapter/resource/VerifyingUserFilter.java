@@ -27,7 +27,7 @@ public class VerifyingUserFilter implements Filter {
                          FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         String securityKey = req.getHeader("security-key");
-        if (StringUtils.isBlank(securityKey)||securityKey.equals(securityKey)) {
+        if (StringUtils.isBlank(securityKey)) {
             ThreadLocalUtil.set("SECURITY-KEY", securityKey);
         }
         try {

@@ -4,6 +4,7 @@ import com.robustel.dispatching.domain.InitServiceLocator;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -49,9 +50,9 @@ class ElevatorTest {
         assertTrue(elevator.getToBeNotified().isEmpty());
         assertNull(elevator.getNotified());
         assertTrue(elevator.getOnPassage().isEmpty());
-        assertTrue(elevator.getPassengers().isEmpty());
+        assertTrue(elevator.getBinding().isEmpty());
         assertTrue(elevator.getRequests().isEmpty());
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test
@@ -95,20 +96,20 @@ class ElevatorTest {
     @Test
     void Given_UnbindingPassenger_When_Bind_Then_Expected() {
         elevator.bind(Passenger.of("1"));
-        assertTrue(elevator.getPassengers().contains(Passenger.of("1")));
+        assertTrue(elevator.getBinding().contains(Passenger.of("1")));
     }
 
     @Test
     void Given_BindingPassenger_When_Bind_Then_Ignore() {
         elevator.bind(Passenger.of("1"));
         elevator.bind(Passenger.of("1"));
-        assertTrue(elevator.getPassengers().contains(Passenger.of("1")));
+        assertTrue(elevator.getBinding().contains(Passenger.of("1")));
     }
 
     @Test
     void Given_UnbindingPassenger_When_Unbind_Then_Expected() {
         elevator.unbind(Passenger.of("1"));
-        assertFalse(elevator.getPassengers().contains(Passenger.of("1")));
+        assertFalse(elevator.getBinding().contains(Passenger.of("1")));
     }
 
     @Test
@@ -116,7 +117,7 @@ class ElevatorTest {
         elevator.bind(Passenger.of("1"));
         assertTrue(elevator.isBinding(Passenger.of("1")));
         elevator.unbind(Passenger.of("1"));
-        assertFalse(elevator.getPassengers().contains(Passenger.of("1")));
+        assertFalse(elevator.getBinding().contains(Passenger.of("1")));
     }
 
     @Test
@@ -164,7 +165,7 @@ class ElevatorTest {
         assertEquals(ElevatorState.WAITING_OUT, elevator.getState());
         assertEquals(firstPassenger, elevator.getNotified());
         assertTrue(elevator.getToBeNotified().isEmpty());
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test
@@ -196,7 +197,7 @@ class ElevatorTest {
         assertEquals(ElevatorState.WAITING_OUT, elevator.getState());
         assertEquals(thirdPassenger, elevator.getNotified());
         assertEquals(2, elevator.getToBeNotified().size());
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test
@@ -232,8 +233,8 @@ class ElevatorTest {
         assertEquals(ElevatorState.WAITING_OUT, elevator.getState());
         assertEquals(fourthPassenger, elevator.getNotified());
         assertEquals(3, elevator.getToBeNotified().size());
-        assertEquals(1, elevator.getTransferStation().size());
-        assertEquals(fourthPassenger, elevator.getTransferStation().get(0));
+        assertEquals(1, elevator.getTransferPassengers().size());
+        assertEquals(fourthPassenger, elevator.getTransferPassengers().get(0));
     }
 
     @Test
@@ -252,7 +253,7 @@ class ElevatorTest {
 
         assertEquals(ElevatorState.COMPLETED_IN, elevator.getState());
         assertTrue(elevator.getToBeNotified().isEmpty());
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test
@@ -284,10 +285,11 @@ class ElevatorTest {
         assertEquals(ElevatorState.WAITING_IN, elevator.getState());
         assertTrue(elevator.getToBeNotified().isEmpty());
         assertEquals(firstPassenger, elevator.getNotified());
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test
+    @Disabled("since ignore direction")
     void Given_MoreThanOnePassengerWaitingForElevatorUp_When_NotifyPassengerIn_Then_Expected() {
         /**
          * 有两个或者以上需要乘梯的乘客，通知进梯逻辑应该满足先到乘前提下，后下的先进
@@ -315,7 +317,7 @@ class ElevatorTest {
         assertEquals(thirdPassenger, elevator.getNotified());
         assertEquals(1, elevator.getToBeNotified().size());
         assertTrue(elevator.getToBeNotified().contains(firstPassenger));
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
 
@@ -347,7 +349,7 @@ class ElevatorTest {
         assertEquals(firstPassenger, elevator.getNotified());
         assertEquals(1, elevator.getToBeNotified().size());
         assertTrue(elevator.getToBeNotified().contains(thirdPassenger));
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test
@@ -384,7 +386,7 @@ class ElevatorTest {
         assertEquals(2, elevator.getToBeNotified().size());
         assertTrue(elevator.getToBeNotified().contains(thirdPassenger));
         assertTrue(elevator.getToBeNotified().contains(fifthPassenger));
-        assertTrue(elevator.getTransferStation().isEmpty());
+        assertTrue(elevator.getTransferPassengers().isEmpty());
     }
 
     @Test

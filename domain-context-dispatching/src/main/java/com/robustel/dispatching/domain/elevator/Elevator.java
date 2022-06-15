@@ -30,17 +30,17 @@ public class Elevator extends AbstractEntity<Long> {
     private Floor currentFloor;
     private Direction direction;
     private ElevatorState state;
-    private Set<Passenger> passengers;//乘客绑定电梯
+    private Set<Passenger> binding;//乘客绑定电梯
     private Map<String, Request> requests;//乘梯请求
     private List<Passenger> toBeNotified;//待通知乘客列表
     private Passenger notified;//当前通知的乘客
-    private List<Passenger> transferStation;//中转乘客
+    private List<Passenger> transferPassengers;//中转乘客
     private List<Passenger> onPassage;//乘梯中的乘客
 
     public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
                     Direction direction, ElevatorState state, Map<String, Request> requests,
-                    List<Passenger> toBeNotified, Set<Passenger> passengers, Passenger notified,
-                    List<Passenger> onPassage, List<Passenger> transferStation) {
+                    List<Passenger> toBeNotified, Set<Passenger> binding, Passenger notified,
+                    List<Passenger> onPassage, List<Passenger> transferPassengers) {
         super(id);
         this.name = name;
         this.highest = highest;
@@ -50,10 +50,10 @@ public class Elevator extends AbstractEntity<Long> {
         this.state = state;
         this.requests = requests;
         this.toBeNotified = toBeNotified;
-        this.passengers = passengers;
+        this.binding = binding;
         this.notified = notified;
         this.onPassage = onPassage;
-        this.transferStation = transferStation;
+        this.transferPassengers = transferPassengers;
     }
 
     public static Elevator create(@NonNull String name, int highest, int lowest, @NonNull String modelId, @NonNull String sn) {
@@ -67,18 +67,18 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     public boolean isBinding(Passenger passenger) {
-        return this.passengers.contains(passenger);
+        return this.binding.contains(passenger);
     }
 
     public void unbind(@NonNull Passenger passenger) {
-        if (!this.passengers.remove(passenger)) {
+        if (!this.binding.remove(passenger)) {
             log.warn("该乘客【{}】与该电梯【{}】未存在绑定关系", passenger, id());
         }
 
     }
 
     public void bind(@NonNull Passenger passenger) {
-        if (!this.passengers.add(passenger)) {
+        if (!this.binding.add(passenger)) {
             log.warn("该乘客【{}】已经绑定到这台电梯【{}】", passenger, id());
         }
     }
@@ -122,9 +122,9 @@ public class Elevator extends AbstractEntity<Long> {
                 .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
         int fromIndex = 0;
         int toIndex = Math.min(toBeTook.size(), CAPACITY);
-        this.transferStation.addAll(toBeTook.subList(fromIndex, toIndex));
+        this.transferPassengers.addAll(toBeTook.subList(fromIndex, toIndex));
         this.toBeNotified = this.requests.values().stream()
-                .filter(request -> transferStation.contains(request.getPassenger()))
+                .filter(request -> transferPassengers.contains(request.getPassenger()))
                 .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
         //todo 由于目前无法获取电梯下一时刻运行方向，故只要匹配出发楼层就符合入梯条件。此时先进后进缺少了判断依据，对于一梯多机调度效率会有影响
         /**
@@ -138,7 +138,7 @@ public class Elevator extends AbstractEntity<Long> {
          .sorted(Comparator.comparing(Request::getTo).reversed()).map(Request::getPassenger).collect(Collectors.toList());
          }
          **/
-        this.transferStation.clear();
+        this.transferPassengers.clear();
         log.debug(String.format("准备待通知进梯乘客列表【%s】...", this.toBeNotified));
     }
 
@@ -173,7 +173,7 @@ public class Elevator extends AbstractEntity<Long> {
             this.notified = new OnPassageStack().pop();
             ServiceLocator.service(EventPublisher.class).publish(new PassengerOutEvent(this.notified));
             if (!toBeNotified.remove(this.notified)) {
-                this.transferStation.add(this.notified);
+                this.transferPassengers.add(this.notified);
             }
         }
     }

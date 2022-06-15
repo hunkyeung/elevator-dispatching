@@ -6,7 +6,6 @@
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
-        <!--        <version>2.3.5.RELEASE</version>-->
         <version>2.5.0</version>
     </parent>
     <groupId>com.robustel</groupId>
@@ -15,9 +14,9 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>domain-context-dispatching</module>
-        <module>adapter-persistence-mongodb-dispatching</module>
-        <module>adapter-resource-dispatching</module>
-        <module>adapter-iot-thing-dispatching</module>
+        <module>adapter-persistence-mongodb</module>
+        <module>adapter-resource</module>
+        <module>adapter-iot-thing</module>
         <module>elevator-dispatching-bootstrap</module>
     </modules>
 
@@ -57,5 +56,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
 </project>

@@ -7,11 +7,8 @@
         <groupId>com.robustel</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <groupId>com.robustel</groupId>
     <artifactId>elevator-dispatching-bootstrap</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>elevator-dispatching-bootstrap</name>
-    <description>Demo project for Spring Boot</description>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -27,32 +24,6 @@
             <artifactId>adapter-persistence-mongodb-dispatching</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <!--thing-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.robustel</groupId>-->
-        <!--            <artifactId>adapter-resource-thing</artifactId>-->
-        <!--            <version>1.0-SNAPSHOT</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.robustel</groupId>-->
-        <!--            <artifactId>adapter-persistence-mongodb-thing</artifactId>-->
-        <!--            <version>1.0-SNAPSHOT</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.robustel</groupId>-->
-        <!--            <artifactId>adapter-mqtt-thing</artifactId>-->
-        <!--            <version>1.0-SNAPSHOT</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.robustel</groupId>-->
-        <!--            <artifactId>adapter-ruleengine-drools-rule</artifactId>-->
-        <!--            <version>1.0-SNAPSHOT</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>com.robustel</groupId>-->
-        <!--            <artifactId>adapter-mq-activemq-thing</artifactId>-->
-        <!--            <version>1.0-SNAPSHOT</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>com.robustel</groupId>
             <artifactId>iot-thing-bootstrap</artifactId>
