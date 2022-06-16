@@ -1,4 +1,4 @@
-package com.robustel.adapter.resource;
+package com.robustel.adapter.dispatching;
 
 import com.robustel.dispatching.application.*;
 import com.robustel.dispatching.domain.elevator.Direction;

@@ -17,20 +17,21 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-public class ArrivingFloorListener {
+public class ElevatorOpenedEventListener {
     @Value("${robustel.elevator-dispatching.app-name}")
     private String appName;
 
     private final OpeningTheDoorApplication openingTheDoorApplication;
 
-    public ArrivingFloorListener(OpeningTheDoorApplication openingTheDoorApplication) {
+    public ElevatorOpenedEventListener(OpeningTheDoorApplication openingTheDoorApplication) {
         this.openingTheDoorApplication = openingTheDoorApplication;
     }
 
     @Subscribe
-    public void arrive(MatchedEvent event) {
+    public void listenOn(MatchedEvent event) {
+        // 当电梯开门时
         if (event.getFact().get("uri").equals("." + appName + ".arriving_event")) {
-            Map<String,Object> properties = ((Map) event.getFact().get("properties"));
+            Map<String, Object> properties = ((Map) event.getFact().get("properties"));
             int floor = Integer.parseInt((String) properties.get("floor"));
             Direction direction = Direction.valueOf((String) properties.get("direction"));
             log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
