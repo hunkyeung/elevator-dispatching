@@ -1,7 +1,8 @@
-package com.robustel.dispatching.domain;
+package com.robustel;
 
 import com.robustel.ddd.query.Query;
 import com.robustel.ddd.query.Type;
+import com.robustel.dispatching.domain.SelectingElevatorStrategyService;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
