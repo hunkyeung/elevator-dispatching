@@ -1,4 +1,4 @@
-package com.robustel.adapter.dispatching;
+package com.robustel;
 
 import com.robustel.utils.ThreadLocalUtil;
 import org.apache.commons.lang3.StringUtils;
