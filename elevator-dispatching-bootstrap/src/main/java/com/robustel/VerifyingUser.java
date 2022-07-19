@@ -8,14 +8,13 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import org.yeung.api.DomainException;
 
 /**
  * @author YangXuehong
  * @date 2021/8/20
  */
-@Component
+//@Component
 @Aspect
 @Order(150)
 @Slf4j

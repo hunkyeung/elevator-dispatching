@@ -4,13 +4,11 @@ import com.robustel.ddd.core.ValueObject;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  * @author YangXuehong
  * @date 2022/4/8
  */
-@ToString
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode
@@ -32,5 +30,10 @@ public class Floor implements ValueObject, Comparable<Floor> {
     @Override
     public int compareTo(Floor to) {
         return this.value - to.getValue();
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(this.value);
     }
 }

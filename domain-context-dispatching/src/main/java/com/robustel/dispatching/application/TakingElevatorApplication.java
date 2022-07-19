@@ -7,6 +7,7 @@ import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ public class TakingElevatorApplication {
     }
 
     public Long doTakeElevator(Command command) {
+        log.debug("等待调度{}", command);
         if (Objects.equals(command.getFrom(), command.getTo())) {
             throw new IllegalArgumentException(String.format("出发楼层【%s】和目标楼层【%s】相同", command.getFrom(), command.getTo()));
         }
@@ -37,6 +39,7 @@ public class TakingElevatorApplication {
         return elevator.id();
     }
 
+    @ToString
     @Getter
     public static class Command {
         @NonNull

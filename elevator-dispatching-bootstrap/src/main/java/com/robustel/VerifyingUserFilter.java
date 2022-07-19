@@ -13,7 +13,7 @@ import java.io.IOException;
  * @author YangXuehong
  * @date 2021/7/13
  */
-@Component
+//@Component
 @WebFilter(filterName = "verifyingUserFilter", urlPatterns = {"/*"})
 public class VerifyingUserFilter implements Filter {
 
@@ -27,7 +27,7 @@ public class VerifyingUserFilter implements Filter {
                          FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         String securityKey = req.getHeader("security-key");
-        if (StringUtils.isBlank(securityKey)) {
+        if (!StringUtils.isBlank(securityKey)) {
             ThreadLocalUtil.set("SECURITY-KEY", securityKey);
         }
         try {

@@ -1,9 +1,8 @@
 package com.robustel.adapter.iot.thing;
 
 import com.google.common.eventbus.Subscribe;
-import com.robustel.dispatching.domain.elevator.ReleaseDoorEvent;
-import com.robustel.dispatching.domain.elevator.Request;
-import com.robustel.dispatching.domain.elevator.RequestAcceptedEvent;
+import com.robustel.dispatching.domain.elevator.Floor;
+import com.robustel.dispatching.domain.elevator.LightenEvent;
 import com.robustel.thing.application.ExecutingInstructionApplication;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,33 +23,18 @@ public class ElevatorController {
         this.executingInstructionApplication = executingInstructionApplication;
     }
 
-    public void take(Long elevatorId, Request request) {
+    public void lightUp(Long elevatorId, Floor floor) {
         Map<String, Object> params = new HashMap<>();
-        params.put("from", request.getFrom().getValue());
-        params.put("to", request.getTo().getValue());
+        params.put("floor", floor);
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
                 "take", params);
-        log.debug("乘客【{}】想搭乘电梯【{}】从{}楼到{}楼", request.getPassenger(), elevatorId, request.getFrom().getValue(),
-                request.getTo().getValue());
-    }
-
-    public void release(Long elevatorId) {
-        executingInstructionApplication.doExecuteInstruction(
-                String.valueOf(elevatorId),
-                "release", Map.of());
-        log.debug("释放电梯【{}】开门按钮", elevatorId);
+        log.debug("点亮电梯【{}】第【{}】层按钮", elevatorId, floor);
     }
 
     @Subscribe
-    public void listenOn(RequestAcceptedEvent event) {
-        take(event.getElevatorId(), event.getRequest());
+    public void listenOn(LightenEvent event) {
+        lightUp(event.getElevatorId(), event.getFloor());
     }
-
-    @Subscribe
-    public void listenOn(ReleaseDoorEvent event) {
-        release(event.getElevatorId());
-    }
-
 
 }

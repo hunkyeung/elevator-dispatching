@@ -18,6 +18,7 @@
         <module>adapter-resource</module>
         <module>adapter-iot-thing</module>
         <module>elevator-dispatching-bootstrap</module>
+        <module>adapter-auth-id</module>
     </modules>
 
     <properties>

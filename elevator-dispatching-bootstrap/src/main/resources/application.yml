@@ -57,7 +57,3 @@ robustel:
           service-uri: ${MQTT_ACTIVEMQ_SERVICE_URI:tcp://localhost:61616}
           username: ${MQTT_ACTIVEMQ_USER:}
           password: ${MQTT_ACTIVEMQ_PASSWORD:}
-          certificates:
-            ca: ca
-            cert: cert
-            key: key

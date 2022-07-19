@@ -36,11 +36,12 @@ public class Elevator extends AbstractEntity<Long> {
     private Passenger notified;//当前通知的乘客
     private List<Passenger> transferPassengers;//中转乘客
     private List<Passenger> onPassage;//乘梯中的乘客
+    private Set<Floor> lightenFloor;
 
     public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
                     Direction direction, ElevatorState state, Map<String, Request> requests,
                     List<Passenger> toBeNotified, Set<Passenger> binding, Passenger notified,
-                    List<Passenger> onPassage, List<Passenger> transferPassengers) {
+                    List<Passenger> onPassage, List<Passenger> transferPassengers, Set<Floor> lightenFloor) {
         super(id);
         this.name = name;
         this.highest = highest;
@@ -54,16 +55,25 @@ public class Elevator extends AbstractEntity<Long> {
         this.notified = notified;
         this.onPassage = onPassage;
         this.transferPassengers = transferPassengers;
+        this.lightenFloor = lightenFloor;
     }
 
     public static Elevator create(@NonNull String name, int highest, int lowest, @NonNull String modelId, @NonNull String sn) {
+        Long id = ServiceLocator.service(UidGenerator.class).nextId();
+        return create(id, name, highest, lowest, modelId, sn);
+    }
+
+    public static Elevator create(long id, @NonNull String name, int highest, int lowest, @NonNull String modelId, @NonNull String sn) {
         if (lowest > highest) {
             throw new IllegalArgumentException(String.format("最低楼层【%s】不能大于最高楼层【%s】", lowest, highest));
         }
-        Long id = ServiceLocator.service(UidGenerator.class).nextId();
+        if (id == 0) {
+            id = ServiceLocator.service(UidGenerator.class).nextId();
+        }
         ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(id, modelId, sn));
         return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null,
-                Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(), null, new ArrayList<>(), new ArrayList<>());
+                Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(),
+                null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
     }
 
     public boolean isBinding(Passenger passenger) {
@@ -89,13 +99,15 @@ public class Elevator extends AbstractEntity<Long> {
         }
         Request request = Request.create(passenger, from, to);
         this.requests.put(passenger.getId(), request);
-        log.debug("等待调度的乘梯请求:{}", this.requests);
-        ServiceLocator.service(EventPublisher.class).publish(new RequestAcceptedEvent(id(), request));
+        if (this.lightenFloor.add(from)) {
+            ServiceLocator.service(EventPublisher.class).publish(new LightenEvent(id(), from));
+        }
     }
 
     public void open(@NonNull Floor floor, @NonNull Direction nextDirection) {
         this.currentFloor = floor;
         this.direction = nextDirection;
+        this.lightenFloor.remove(floor);
         ServiceLocator.service(EventPublisher.class).publish(new ElevatorDoorOpenedEvent(this));
     }
 
@@ -190,6 +202,9 @@ public class Elevator extends AbstractEntity<Long> {
             history = RequestHistory.create(this.requests.remove(passenger.getId()), id());
         } else if (ElevatorState.WAITING_IN.equals(state)) {
             new OnPassageStack().push(request.getPassenger());
+            if (this.lightenFloor.add(request.getTo())) {
+                ServiceLocator.service(EventPublisher.class).publish(new LightenEvent(id(), request.getTo()));
+            }
         }
         notifyNext();
         return history;

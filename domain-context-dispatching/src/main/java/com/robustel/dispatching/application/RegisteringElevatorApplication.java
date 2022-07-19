@@ -18,7 +18,7 @@ public class RegisteringElevatorApplication {
     }
 
     public Long doRegister(Command command) {
-        Elevator elevator = Elevator.create(command.getName(),
+        Elevator elevator = Elevator.create(command.getId(), command.getName(),
                 command.getHighest(), command.getLowest(), command.getModelId(), command.getSn());
         elevatorRepository.save(elevator);
         return elevator.id();
@@ -26,6 +26,7 @@ public class RegisteringElevatorApplication {
 
     @Getter
     public static class Command {
+        private long id;
         private String name;
         private int highest;
         private int lowest;
