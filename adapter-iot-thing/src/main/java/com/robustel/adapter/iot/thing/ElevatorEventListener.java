@@ -17,13 +17,13 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-public class ElevatorOpenedEventListener {
+public class ElevatorEventListener {
     @Value("${robustel.elevator-dispatching.app-name}")
     private String appName;
 
     private final OpeningTheDoorApplication openingTheDoorApplication;
 
-    public ElevatorOpenedEventListener(OpeningTheDoorApplication openingTheDoorApplication) {
+    public ElevatorEventListener(OpeningTheDoorApplication openingTheDoorApplication) {
         this.openingTheDoorApplication = openingTheDoorApplication;
     }
 

@@ -21,6 +21,8 @@ public class AdministratorResource {
     @Autowired
     private RegisteringElevatorApplication registeringElevatorApplication;
     @Autowired
+    private UnregisteringElevatorApplication unregisteringElevatorApplication;
+    @Autowired
     private BindingAndUnbindingPassengerApplication bindingAndUnbindingPassengerApplication;
     @Autowired
     private ReleaseTheDoorApplication releaseTheDoorApplication;
@@ -36,6 +38,12 @@ public class AdministratorResource {
     @PostMapping("/elevators")
     public RestResponse<Map<String, Object>> registerElevator(@RequestBody RegisteringElevatorApplication.Command command) {
         return RestResponse.ofSuccess(Map.of("elevatorId", registeringElevatorApplication.doRegister(command)));
+    }
+
+    @DeleteMapping("/elevators/{elevatorId}")
+    public RestResponse<Void> unregisterElevator(@PathVariable long elevatorId) {
+        unregisteringElevatorApplication.doUnregister(elevatorId);
+        return RestResponse.ofSuccessWithoutResult();
     }
 
     @PutMapping("/elevators/{elevatorId}/doors")
