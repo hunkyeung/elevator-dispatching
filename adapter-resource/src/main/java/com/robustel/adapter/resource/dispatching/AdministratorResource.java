@@ -49,7 +49,7 @@ public class AdministratorResource {
     }
 
     @DeleteMapping("/elevators/{elevatorId}")
-    public RestResponse<Void> unregisterElevator(@PathVariable long elevatorId) {
+    public RestResponse<Void> unregisterElevator(@PathVariable Long elevatorId) {
         unregisteringElevatorApplication.doUnregister(elevatorId);
         return RestResponse.ofSuccessWithoutResult();
     }
@@ -93,8 +93,8 @@ public class AdministratorResource {
 
     @GetMapping("/request-histories")
     public RestResponse<PageResult<RequestHistory.Data>> getRequestHistory(
-            @RequestParam(required = false) long elevatorId, @RequestParam(required = false) String passenger,
-            @RequestParam int pageSize, @RequestParam int pageNum) {
+            @RequestParam(required = false) Long elevatorId, @RequestParam(required = false) String passenger,
+            @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
         return RestResponse.ofSuccess(gettingRequestHistoryApplication.getRequestHistory(elevatorId, passenger, Page.of(pageSize, pageNum)));
     }
 }

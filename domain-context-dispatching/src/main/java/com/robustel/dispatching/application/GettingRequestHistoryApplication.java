@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,9 +23,9 @@ public class GettingRequestHistoryApplication {
         this.repository = repository;
     }
 
-    public PageResult<RequestHistory.Data> getRequestHistory(long elevatorId, String passenger, Page page) {
+    public PageResult<RequestHistory.Data> getRequestHistory(Long elevatorId, String passenger, Page page) {
         Query.Builder builder = new Query.Builder();
-        if (elevatorId != 0) {
+        if (Objects.nonNull(elevatorId)) {
             builder.matching(Type.EQ, ELEVATOR_ID, elevatorId);
         }
         if (!StringUtils.isBlank(passenger)) {
