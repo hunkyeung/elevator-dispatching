@@ -1,12 +1,15 @@
 package com.robustel.dispatching.domain.requesthistory;
 
 import com.robustel.ddd.core.AbstractEntity;
+import com.robustel.ddd.core.ValueObject;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.elevator.Request;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * @author YangXuehong
@@ -30,5 +33,30 @@ public class RequestHistory extends AbstractEntity<Long> {
 
     public static RequestHistory create(@NonNull Request request, @NonNull Long elevatorId) {
         return new RequestHistory(ServiceLocator.service(UidGenerator.class).nextId(), request, elevatorId, Instant.now());
+    }
+
+    public Data toData() {
+        return new Data(id(), request.id(), request.getPassenger().getId(), request.getFrom().getValue(), request.getTo().getValue(),
+                request.getAt().toEpochMilli(),
+                Optional.ofNullable(request.getIn()).orElse(Instant.EPOCH).toEpochMilli(),
+                Optional.ofNullable(request.getOut()).orElse(Instant.EPOCH).toEpochMilli(),
+                StringUtils.defaultIfBlank(request.getStatus(), ""), elevatorId, archivedOn.toEpochMilli());
+    }
+
+    @AllArgsConstructor
+    @ToString
+    @Getter
+    public static class Data implements ValueObject {
+        private long id;
+        private long requestId;
+        private String passenger;
+        private int from;
+        private int to;
+        private long at;
+        private long in;
+        private long out;
+        private String status;
+        private long elevatorId;
+        private long archivedOn;
     }
 }

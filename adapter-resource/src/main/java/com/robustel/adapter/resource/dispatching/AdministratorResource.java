@@ -1,8 +1,13 @@
 package com.robustel.adapter.resource.dispatching;
 
+import com.alibaba.fastjson.JSON;
+import com.robustel.ddd.query.Page;
+import com.robustel.ddd.query.PageResult;
 import com.robustel.dispatching.application.*;
 import com.robustel.dispatching.domain.elevator.Direction;
 import com.robustel.dispatching.domain.elevator.Floor;
+import com.robustel.dispatching.domain.requesthistory.RequestHistory;
+import com.robustel.thing.application.ExecutingInstructionApplication;
 import com.robustel.utils.RestResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,10 +30,13 @@ public class AdministratorResource {
     @Autowired
     private BindingAndUnbindingPassengerApplication bindingAndUnbindingPassengerApplication;
     @Autowired
-    private ReleaseTheDoorApplication releaseTheDoorApplication;
-
+    private ReleasingElevatorApplication releaseTheDoorApplication;
     @Autowired
-    private OpeningTheDoorApplication openingTheDoorApplication;
+    private ArrivingTheFloorApplication arrivingTheFloorApplication;
+    @Autowired
+    private ExecutingInstructionApplication executingInstructionApplication;
+    @Autowired
+    private GettingRequestHistoryApplication gettingRequestHistoryApplication;
 
     @PostMapping("/robots")
     public RestResponse<Map<String, Object>> registerRobot(@RequestBody RegisteringRobotApplication.Command command) {
@@ -46,15 +54,28 @@ public class AdministratorResource {
         return RestResponse.ofSuccessWithoutResult();
     }
 
+    //todo 临时封装接口，用于解决APaaS HTTP连接器无法传body内容
+    @PostMapping("/elevators/commands")
+    public RestResponse<String> executeCommand(@RequestBody Map<String, Object> body) {
+        String elevatorId = (String) body.get("elevatorId");
+        String commandName = (String) body.get("commandName");
+        String parameter = (String) body.get("parameter");
+        return RestResponse.ofSuccess(
+                executingInstructionApplication.doExecuteInstruction(String.valueOf(elevatorId), commandName, JSON.parseObject(parameter, Map.class))
+        );
+    }
+
+
     @PutMapping("/elevators/{elevatorId}/doors")
     public RestResponse<Void> openDoor(@PathVariable Long elevatorId, @RequestParam Floor floor, @RequestParam Direction nextDirection) {
-        openingTheDoorApplication.doOpenDoor(elevatorId, floor, nextDirection);
+        arrivingTheFloorApplication.doArrive(elevatorId, floor, nextDirection);
         return RestResponse.ofSuccessWithoutResult();
     }
 
+
     @DeleteMapping("/elevators/{elevatorId}/doors")
     public RestResponse<Void> releaseDoor(@PathVariable Long elevatorId) {
-        releaseTheDoorApplication.doReleaseDoor(elevatorId);
+        releaseTheDoorApplication.doReleaseElevator(elevatorId);
         return RestResponse.ofSuccessWithoutResult();
     }
 
@@ -68,5 +89,12 @@ public class AdministratorResource {
     public RestResponse<Void> unbindFromElevator(@PathVariable Long elevatorId, @RequestParam String passengerId) {
         bindingAndUnbindingPassengerApplication.doUnbind(elevatorId, passengerId);
         return RestResponse.ofSuccessWithoutResult();
+    }
+
+    @GetMapping("/request-histories")
+    public RestResponse<PageResult<RequestHistory.Data>> getRequestHistory(
+            @RequestParam(required = false) long elevatorId, @RequestParam(required = false) String passenger,
+            @RequestParam int pageSize, @RequestParam int pageNum) {
+        return RestResponse.ofSuccess(gettingRequestHistoryApplication.getRequestHistory(elevatorId, passenger, Page.of(pageSize, pageNum)));
     }
 }

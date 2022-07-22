@@ -1,7 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.AbstractEntity;
-import com.robustel.ddd.service.EventPublisher;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
@@ -58,19 +57,18 @@ public class Elevator extends AbstractEntity<Long> {
         this.lightenFloor = lightenFloor;
     }
 
-    public static Elevator create(@NonNull String name, int highest, int lowest, @NonNull String modelId, @NonNull String sn) {
+    public static Elevator create(@NonNull String name, int highest, int lowest) {
         Long id = ServiceLocator.service(UidGenerator.class).nextId();
-        return create(id, name, highest, lowest, modelId, sn);
+        return create(id, name, highest, lowest);
     }
 
-    public static Elevator create(long id, @NonNull String name, int highest, int lowest, @NonNull String modelId, @NonNull String sn) {
+    public static Elevator create(long id, @NonNull String name, int highest, int lowest) {
         if (lowest > highest) {
             throw new IllegalArgumentException(String.format("最低楼层【%s】不能大于最高楼层【%s】", lowest, highest));
         }
         if (id == 0) {
             id = ServiceLocator.service(UidGenerator.class).nextId();
         }
-        ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(id, modelId, sn));
         return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null,
                 Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(),
                 null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
@@ -100,26 +98,26 @@ public class Elevator extends AbstractEntity<Long> {
         Request request = Request.create(passenger, from, to);
         this.requests.put(passenger.getId(), request);
         if (this.lightenFloor.add(from)) {
-            ServiceLocator.service(EventPublisher.class).publish(new LightenEvent(id(), from));
+            ServiceLocator.service(ElevatorController.class).lightUp(id(), from);
         }
     }
 
-    public void open(@NonNull Floor floor, @NonNull Direction nextDirection) {
+    public void arrive(@NonNull Floor floor, @NonNull Direction nextDirection) {
         this.currentFloor = floor;
         this.direction = nextDirection;
         this.lightenFloor.remove(floor);
-        ServiceLocator.service(EventPublisher.class).publish(new ElevatorDoorOpenedEvent(this));
+        notifyPassengerOut();
     }
 
     public boolean isMatched(Floor from, Floor to) {
         return from.compareTo(lowest) >= 0 && from.compareTo(highest) <= 0 && to.compareTo(lowest) >= 0 && to.compareTo(highest) <= 0;
     }
 
-    public void releaseDoor() {
+    public void release() {
         this.state = ElevatorState.NONE;
         this.notified = null;
         this.toBeNotified.clear();
-        ServiceLocator.service(EventPublisher.class).publish(new ReleaseDoorEvent(id()));
+        ServiceLocator.service(ElevatorController.class).release(id());
     }
 
     public void notifyPassengerIn() {
@@ -157,10 +155,10 @@ public class Elevator extends AbstractEntity<Long> {
     private void notifyNextIn() {
         if (this.toBeNotified.isEmpty()) {
             this.state = ElevatorState.COMPLETED_IN;
-            ServiceLocator.service(EventPublisher.class).publish(new ElevatorCompletedInEvent(this));
+            ServiceLocator.service(ElevatorController.class).release(id());
         } else {
             this.notified = this.toBeNotified.remove(0);
-            ServiceLocator.service(EventPublisher.class).publish(new PassengerInEvent(this.notified));
+            ServiceLocator.service(PassengerController.class).pleaseIn(this.notified);
         }
     }
 
@@ -180,10 +178,10 @@ public class Elevator extends AbstractEntity<Long> {
     private void notifyNextOut() {
         if (toBeNotified.isEmpty()) {
             this.state = ElevatorState.COMPLETED_OUT;
-            ServiceLocator.service(EventPublisher.class).publish(new ElevatorCompletedOutEvent(this));
+            notifyPassengerIn();
         } else {
             this.notified = new OnPassageStack().pop();
-            ServiceLocator.service(EventPublisher.class).publish(new PassengerOutEvent(this.notified));
+            ServiceLocator.service(PassengerController.class).pleaseOut(this.notified);
             if (!toBeNotified.remove(this.notified)) {
                 this.transferPassengers.add(this.notified);
             }
@@ -203,7 +201,7 @@ public class Elevator extends AbstractEntity<Long> {
         } else if (ElevatorState.WAITING_IN.equals(state)) {
             new OnPassageStack().push(request.getPassenger());
             if (this.lightenFloor.add(request.getTo())) {
-                ServiceLocator.service(EventPublisher.class).publish(new LightenEvent(id(), request.getTo()));
+                ServiceLocator.service(ElevatorController.class).lightUp(id(), request.getTo());
             }
         }
         notifyNext();

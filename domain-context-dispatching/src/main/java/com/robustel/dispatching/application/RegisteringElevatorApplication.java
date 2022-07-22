@@ -1,6 +1,9 @@
 package com.robustel.dispatching.application;
 
+import com.robustel.ddd.service.EventPublisher;
+import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.dispatching.domain.elevator.Elevator;
+import com.robustel.dispatching.domain.elevator.ElevatorRegisteredEvent;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
@@ -19,8 +22,9 @@ public class RegisteringElevatorApplication {
 
     public Long doRegister(Command command) {
         Elevator elevator = Elevator.create(command.getId(), command.getName(),
-                command.getHighest(), command.getLowest(), command.getModelId(), command.getSn());
+                command.getHighest(), command.getLowest());
         elevatorRepository.save(elevator);
+        ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(elevator.id(), command.modelId, command.sn));
         return elevator.id();
     }
 

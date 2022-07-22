@@ -8,18 +8,18 @@ import org.springframework.stereotype.Service;
  * @date 2022/4/13
  */
 @Service
-public class OpeningTheDoorApplication {
+public class ArrivingTheFloorApplication {
     private final ElevatorRepository elevatorRepository;
 
-    public OpeningTheDoorApplication(ElevatorRepository elevatorRepository) {
+    public ArrivingTheFloorApplication(ElevatorRepository elevatorRepository) {
         this.elevatorRepository = elevatorRepository;
     }
 
-    public void doOpenDoor(Long elevatorId, Floor floor, Direction nextDirection) {
+    public void doArrive(Long elevatorId, Floor floor, Direction nextDirection) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        elevator.open(floor, nextDirection);
+        elevator.arrive(floor, nextDirection);
         elevatorRepository.save(elevator);
     }
 }

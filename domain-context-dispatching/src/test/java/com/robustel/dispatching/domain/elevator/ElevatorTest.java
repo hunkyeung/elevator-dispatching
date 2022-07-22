@@ -24,19 +24,13 @@ class ElevatorTest {
 
     @BeforeEach
     void init() {
-        elevator = Elevator.create("foobar2000", 10, -2, "foo", "bar");
+        elevator = Elevator.create("foobar2000", 10, -2);
     }
 
     @Test
     void Given_Null_When_Create_Then_ThrowsException() {
         assertThrows(NullPointerException.class,
-                () -> Elevator.create(null, 10, -1, "foo", "bar"));
-        assertThrows(NullPointerException.class,
-                () -> Elevator.create("foobar2000", 10, -1, null, "bar"));
-        assertThrows(NullPointerException.class,
-                () -> Elevator.create("foobar2000", 10, -1, "foo", null));
-        assertThrows(IllegalArgumentException.class,
-                () -> Elevator.create("foobar2000", -1, 10, "foo", "bar"));
+                () -> Elevator.create(null, 10, -1));
     }
 
     @Test
@@ -57,13 +51,13 @@ class ElevatorTest {
 
     @Test
     void Given_HighestLessThanLowest_When_Create_When_Exception() {
-        assertThrows(IllegalArgumentException.class, () -> Elevator.create("foobar2000", -2, 10, "foo", "bar"));
+        assertThrows(IllegalArgumentException.class, () -> Elevator.create("foobar2000", -2, 10));
     }
 
 
     @Test
     void Given_FloorAndDirection_When_Open_Then_CurrentFloorAndDirectionWereSet() {
-        elevator.open(Floor.of(2), Direction.UP);
+        elevator.arrive(Floor.of(2), Direction.UP);
         assertEquals(Floor.of(2), elevator.getCurrentFloor());
         assertEquals(Direction.UP, elevator.getDirection());
     }
@@ -142,7 +136,7 @@ class ElevatorTest {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.STOP,
                 ElevatorState.COMPLETED_IN, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), Passenger.of("1"),
                 new ArrayList<>(), new ArrayList<>(), new HashSet<>());
-        elevator.releaseDoor();
+        elevator.release();
         assertNull(elevator.getNotified());
         assertEquals(ElevatorState.NONE, elevator.getState());
     }

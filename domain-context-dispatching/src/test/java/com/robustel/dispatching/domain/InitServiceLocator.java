@@ -41,7 +41,7 @@ public class InitServiceLocator {
             }
 
             @Override
-            public <T> T getBean(String s, Class<T> aClass) {
+            public <T> T getService(String serviceName, Class<T> aClass) {
                 throw new UnsupportedOperationException();
             }
         });
