@@ -5,13 +5,11 @@ import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 /**
  * @author YangXuehong
@@ -30,24 +28,19 @@ public class TakingElevatorApplication {
 
     public Long doTakeElevator(Command command) {
         log.debug("等待调度{}", command);
-        if (Objects.equals(command.getFrom(), command.getTo())) {
-            throw new IllegalArgumentException(String.format("出发楼层【%s】和目标楼层【%s】相同", command.getFrom(), command.getTo()));
-        }
-        Long elevatorId = selectingElevatorStrategyService.selectElevator(command.getPassenger(), command.getFrom(), command.getTo());
+        Long elevatorId = selectingElevatorStrategyService.selectElevator(command.passenger, command.from, command.to);
         Elevator elevator = elevatorRepository.findById(elevatorId).get();
-        elevator.take(command.getPassenger(), command.getFrom(), command.getTo());
+        elevator.take(command.passenger, command.from, command.to);
         elevatorRepository.save(elevator);
         return elevator.id();
     }
 
     @ToString
-    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Command {
-        @NonNull
         private Passenger passenger;
-        @NonNull
         private Floor from;
-        @NonNull
         private Floor to;
     }
 }

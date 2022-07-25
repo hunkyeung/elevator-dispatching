@@ -35,12 +35,12 @@ public class Elevator extends AbstractEntity<Long> {
     private Passenger notified;//当前通知的乘客
     private List<Passenger> transferPassengers;//中转乘客
     private List<Passenger> onPassage;//乘梯中的乘客
-    private Set<Floor> lightenFloor;
+    private Set<Floor> pressedFloor;
 
     public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
                     Direction nextDirection, ElevatorState state, Map<String, Request> requests,
                     List<Passenger> toBeNotified, Set<Passenger> binding, Passenger notified,
-                    List<Passenger> onPassage, List<Passenger> transferPassengers, Set<Floor> lightenFloor) {
+                    List<Passenger> onPassage, List<Passenger> transferPassengers, Set<Floor> pressedFloor) {
         super(id);
         this.name = name;
         this.highest = highest;
@@ -54,7 +54,7 @@ public class Elevator extends AbstractEntity<Long> {
         this.notified = notified;
         this.onPassage = onPassage;
         this.transferPassengers = transferPassengers;
-        this.lightenFloor = lightenFloor;
+        this.pressedFloor = pressedFloor;
     }
 
     public static Elevator create(@NonNull String name, int highest, int lowest) {
@@ -97,8 +97,8 @@ public class Elevator extends AbstractEntity<Long> {
         }
         Request request = Request.create(passenger, from, to);
         this.requests.put(passenger.getId(), request);
-        if (this.lightenFloor.add(from)) {
-            ServiceLocator.service(ElevatorController.class).lightUp(id(), from);
+        if (this.pressedFloor.add(from)) {
+            ServiceLocator.service(ElevatorController.class).press(id(), from);
         } else {
             log.debug("存在相同楼层的请求，忽略楼层【{}】指令", from);
         }
@@ -107,7 +107,7 @@ public class Elevator extends AbstractEntity<Long> {
     public void arrive(@NonNull Floor floor, @NonNull Direction nextDirection) {
         this.currentFloor = floor;
         this.nextDirection = nextDirection;
-        this.lightenFloor.remove(floor);
+        this.pressedFloor.remove(floor);
         notifyPassengerOut();
     }
 
@@ -204,8 +204,8 @@ public class Elevator extends AbstractEntity<Long> {
             history = RequestHistory.create(this.requests.remove(passenger.getId()), id());
         } else if (ElevatorState.WAITING_IN.equals(state)) {
             new OnPassageStack().push(request.getPassenger());
-            if (this.lightenFloor.add(request.getTo())) {
-                ServiceLocator.service(ElevatorController.class).lightUp(id(), request.getTo());
+            if (this.pressedFloor.add(request.getTo())) {
+                ServiceLocator.service(ElevatorController.class).press(id(), request.getTo());
             }
         }
         notifyNext();

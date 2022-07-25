@@ -5,7 +5,7 @@ package com.robustel.dispatching.domain.elevator;
  * 提供电梯按键功能
  */
 public interface ElevatorController {
-    void lightUp(long elevatorId, Floor floor);
+    void press(long elevatorId, Floor floor);
 
     void release(long elevatorId);
 }

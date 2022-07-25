@@ -2,7 +2,7 @@ package com.robustel;
 
 import com.robustel.ddd.query.Query;
 import com.robustel.ddd.query.Type;
-import com.robustel.dispatching.domain.SelectingElevatorStrategyService;
+import com.robustel.dispatching.domain.AbstractSelectingElevatorStrategyService;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class DefaultSelectingElevatorStrategyService implements SelectingElevatorStrategyService {
+public class DefaultSelectingElevatorStrategyService extends AbstractSelectingElevatorStrategyService {
     private final ThingStatusRepository thingStatusRepository;
     private final ElevatorRepository elevatorRepository;
 
@@ -29,7 +29,7 @@ public class DefaultSelectingElevatorStrategyService implements SelectingElevato
     }
 
     @Override
-    public Long selectElevator(Passenger passenger, Floor from, Floor to) {
+    protected Long select(Passenger passenger, Floor from, Floor to) {
         Query query = new Query.Builder()
                 .matching(Type.IN, "binding", Arrays.asList(passenger))
                 .build();

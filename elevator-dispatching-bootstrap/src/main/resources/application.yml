@@ -28,9 +28,8 @@ robustel:
   elevator-dispatching:
     elevator:
       event-resource: .e2c_s_ladder_control_rs485.arriving_event
-      elevator-status: .e2c_s_ladder_control_rs485.elevator_status
       instruction:
-        light-up: lightUp
+        press: press
         release: release
 
   uid:

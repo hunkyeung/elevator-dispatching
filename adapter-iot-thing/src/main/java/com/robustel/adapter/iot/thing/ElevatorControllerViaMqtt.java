@@ -26,8 +26,8 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
     public static final String URI = "uri";
     @Value("${robustel.elevator-dispatching.elevator.event-resource}")
     private String eventResource;
-    @Value("${robustel.elevator-dispatching.elevator.instruction.light-up}")
-    private String lightUp;
+    @Value("${robustel.elevator-dispatching.elevator.instruction.press}")
+    private String press;
     @Value("${robustel.elevator-dispatching.elevator.instruction.release}")
     private String release;
     private final ExecutingInstructionApplication executingInstructionApplication;
@@ -39,12 +39,12 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
     }
 
     @Override
-    public void lightUp(long elevatorId, Floor floor) {
+    public void press(long elevatorId, Floor floor) {
         Map<String, Object> params = Map.of(FLOOR, floor.getValue());
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
-                lightUp, params);
-        log.debug("点亮电梯【{}】第【{}】层按钮", elevatorId, floor);
+                press, params);
+        log.debug("按电梯【{}】第【{}】层按钮", elevatorId, floor);
     }
 
     @Override
