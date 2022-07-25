@@ -33,7 +33,8 @@ public class TakingElevatorApplication {
         if (Objects.equals(command.getFrom(), command.getTo())) {
             throw new IllegalArgumentException(String.format("出发楼层【%s】和目标楼层【%s】相同", command.getFrom(), command.getTo()));
         }
-        Elevator elevator = selectingElevatorStrategyService.selectElevator(command.getPassenger(), command.getFrom(), command.getTo());
+        Long elevatorId = selectingElevatorStrategyService.selectElevator(command.getPassenger(), command.getFrom(), command.getTo());
+        Elevator elevator = elevatorRepository.findById(elevatorId).get();
         elevator.take(command.getPassenger(), command.getFrom(), command.getTo());
         elevatorRepository.save(elevator);
         return elevator.id();

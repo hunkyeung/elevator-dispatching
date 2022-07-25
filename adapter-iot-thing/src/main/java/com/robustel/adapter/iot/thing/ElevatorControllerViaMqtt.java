@@ -20,8 +20,16 @@ import java.util.Map;
 @Component
 @Slf4j
 public class ElevatorControllerViaMqtt implements ElevatorController {
-    @Value("${robustel.elevator-dispatching.app-name}")
-    private String appName;
+    public static final String FLOOR = "floor";
+    public static final String DIRECTION = "direction";
+    public static final String PROPERTIES = "properties";
+    public static final String URI = "uri";
+    @Value("${robustel.elevator-dispatching.elevator.event-resource}")
+    private String eventResource;
+    @Value("${robustel.elevator-dispatching.elevator.instruction.light-up}")
+    private String lightUp;
+    @Value("${robustel.elevator-dispatching.elevator.instruction.release}")
+    private String release;
     private final ExecutingInstructionApplication executingInstructionApplication;
     private final ArrivingTheFloorApplication arrivingTheFloorApplication;
 
@@ -32,10 +40,10 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
 
     @Override
     public void lightUp(long elevatorId, Floor floor) {
-        Map<String, Object> params = Map.of("floor", floor.getValue());
+        Map<String, Object> params = Map.of(FLOOR, floor.getValue());
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
-                "take", params);
+                lightUp, params);
         log.debug("点亮电梯【{}】第【{}】层按钮", elevatorId, floor);
     }
 
@@ -43,16 +51,16 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
     public void release(long elevatorId) {
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
-                "release", Map.of());
+                release, Map.of());
     }
 
     @Subscribe
     public void listenOn(MatchedEvent event) {
         // 当电梯开门时
-        if (event.getFact().get("uri").equals("." + appName + ".arriving_event")) {
-            Map<String, Object> properties = ((Map) event.getFact().get("properties"));
-            int floor = Integer.parseInt((String) properties.get("floor"));
-            Direction direction = Direction.valueOf((String) properties.get("direction"));
+        if (event.getFact().get(URI).equals(eventResource)) {
+            Map<String, Object> properties = ((Map) event.getFact().get(PROPERTIES));
+            int floor = Integer.parseInt((String) properties.get(FLOOR));
+            Direction direction = Direction.valueOf((String) properties.get(DIRECTION));
             log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
             arrivingTheFloorApplication.doArrive(Long.valueOf(event.getInstanceId()), Floor.of(floor), direction);
         }

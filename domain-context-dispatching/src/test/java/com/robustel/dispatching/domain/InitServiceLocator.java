@@ -4,6 +4,10 @@ import com.google.common.eventbus.EventBus;
 import com.robustel.ddd.service.EventPublisher;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
+import com.robustel.dispatching.domain.elevator.ElevatorController;
+import com.robustel.dispatching.domain.elevator.Floor;
+import com.robustel.dispatching.domain.elevator.Passenger;
+import com.robustel.dispatching.domain.elevator.PassengerController;
 
 import java.util.Map;
 import java.util.Random;
@@ -14,7 +18,8 @@ public class InitServiceLocator {
             private static Map<Class, Object> services;
 
             static {
-                services = Map.of(UidGenerator.class, (UidGenerator) () -> new Random().nextLong(),
+                services = Map.of(
+                        UidGenerator.class, (UidGenerator) () -> new Random().nextLong(),
                         EventPublisher.class, new EventPublisher() {
                             private EventBus eventBus = new EventBus();
 
@@ -31,6 +36,28 @@ public class InitServiceLocator {
                             @Override
                             public void publish(Object o) {
                                 eventBus.post(o);
+                            }
+                        },
+                        ElevatorController.class, new ElevatorController() {
+                            @Override
+                            public void lightUp(long elevatorId, Floor floor) {
+                                System.out.println("light up " + floor);
+                            }
+
+                            @Override
+                            public void release(long elevatorId) {
+                                System.out.println("release " + elevatorId);
+                            }
+                        },
+                        PassengerController.class, new PassengerController() {
+                            @Override
+                            public void pleaseOut(Passenger passenger) {
+                                System.out.println(passenger + " out.");
+                            }
+
+                            @Override
+                            public void pleaseIn(Passenger passenger) {
+                                System.out.println(passenger + " in.");
                             }
                         });
             }

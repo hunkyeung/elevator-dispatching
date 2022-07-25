@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author YangXuehong
@@ -94,7 +95,13 @@ public class AdministratorResource {
     @GetMapping("/request-histories")
     public RestResponse<PageResult<RequestHistory.Data>> getRequestHistory(
             @RequestParam(required = false) Long elevatorId, @RequestParam(required = false) String passenger,
-            @RequestParam Integer pageSize, @RequestParam Integer pageNum) {
+            @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) Integer pageNum) {
+        if (Objects.isNull(pageNum)) {
+            pageNum = Integer.valueOf(1);
+        }
+        if (Objects.isNull(pageSize)) {
+            pageSize = Integer.valueOf(20);
+        }
         return RestResponse.ofSuccess(gettingRequestHistoryApplication.getRequestHistory(elevatorId, passenger, Page.of(pageSize, pageNum)));
     }
 }

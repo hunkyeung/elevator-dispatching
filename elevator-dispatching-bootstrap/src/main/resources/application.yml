@@ -15,18 +15,24 @@ logging:
   level:
     com.robustel: debug
 server:
-#  ssl:
-#    enabled: false
-#    key-store: classpath:tomcat_https.keystore
-#    key-store-type: JKS
-#    key-alias: tomcat_https
-#    key-password: 123456
-#    key-store-password: 123456
+  #  ssl:
+  #    enabled: false
+  #    key-store: classpath:tomcat_https.keystore
+  #    key-store-type: JKS
+  #    key-alias: tomcat_https
+  #    key-password: 123456
+  #    key-store-password: 123456
   port: 8080
 robustel:
   security-key: eb310a33-a93c-4f07-9b23-240579c7c270
   elevator-dispatching:
-    app-name: e2c_s_ladder_control_rs485
+    elevator:
+      event-resource: .e2c_s_ladder_control_rs485.arriving_event
+      elevator-status: .e2c_s_ladder_control_rs485.elevator_status
+      instruction:
+        light-up: lightUp
+        release: release
+
   uid:
     snow-flake:
       machineId: 2
@@ -52,8 +58,8 @@ robustel:
         - broker-name: activemq
           location: Asia
           broker-uri: ${MQTT_ACTIVEMQ_BROKER_URI:tcp://localhost:1883}
-          upstream: VirtualTopic/${spring.application.name}/${thingId}
-          downstream: VirtualTopic/${spring.application.name}/${thingId}
+          upstream: VirtualTopic/${spring.application.name}/${{thingId}}
+          downstream: VirtualTopic/${spring.application.name}/${{thingId}}
           service-uri: ${MQTT_ACTIVEMQ_SERVICE_URI:tcp://localhost:61616}
           username: ${MQTT_ACTIVEMQ_USER:}
           password: ${MQTT_ACTIVEMQ_PASSWORD:}

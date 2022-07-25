@@ -1,7 +1,6 @@
 package com.robustel.dispatching.domain;
 
 import com.robustel.ddd.core.DomainException;
-import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
 
@@ -10,7 +9,7 @@ import com.robustel.dispatching.domain.elevator.Passenger;
  * @date 2022/4/8
  */
 public interface SelectingElevatorStrategyService {
-    Elevator selectElevator(Passenger passenger, Floor from, Floor to);
+    Long selectElevator(Passenger passenger, Floor from, Floor to);
 
     class NoElevatorAvailableException extends DomainException {
         public NoElevatorAvailableException(Passenger passenger) {

@@ -27,7 +27,7 @@ public class Elevator extends AbstractEntity<Long> {
     private Floor highest;//最高楼层
     private Floor lowest;//最低楼层
     private Floor currentFloor;
-    private Direction direction;
+    private Direction nextDirection;
     private ElevatorState state;
     private Set<Passenger> binding;//乘客绑定电梯
     private Map<String, Request> requests;//乘梯请求
@@ -38,7 +38,7 @@ public class Elevator extends AbstractEntity<Long> {
     private Set<Floor> lightenFloor;
 
     public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
-                    Direction direction, ElevatorState state, Map<String, Request> requests,
+                    Direction nextDirection, ElevatorState state, Map<String, Request> requests,
                     List<Passenger> toBeNotified, Set<Passenger> binding, Passenger notified,
                     List<Passenger> onPassage, List<Passenger> transferPassengers, Set<Floor> lightenFloor) {
         super(id);
@@ -46,7 +46,7 @@ public class Elevator extends AbstractEntity<Long> {
         this.highest = highest;
         this.lowest = lowest;
         this.currentFloor = currentFloor;
-        this.direction = direction;
+        this.nextDirection = nextDirection;
         this.state = state;
         this.requests = requests;
         this.toBeNotified = toBeNotified;
@@ -99,12 +99,14 @@ public class Elevator extends AbstractEntity<Long> {
         this.requests.put(passenger.getId(), request);
         if (this.lightenFloor.add(from)) {
             ServiceLocator.service(ElevatorController.class).lightUp(id(), from);
+        } else {
+            log.debug("存在相同楼层的请求，忽略楼层【{}】指令", from);
         }
     }
 
     public void arrive(@NonNull Floor floor, @NonNull Direction nextDirection) {
         this.currentFloor = floor;
-        this.direction = nextDirection;
+        this.nextDirection = nextDirection;
         this.lightenFloor.remove(floor);
         notifyPassengerOut();
     }
@@ -116,6 +118,8 @@ public class Elevator extends AbstractEntity<Long> {
     public void release() {
         this.state = ElevatorState.NONE;
         this.notified = null;
+        this.currentFloor = null;
+        this.nextDirection = null;
         this.toBeNotified.clear();
         ServiceLocator.service(ElevatorController.class).release(id());
     }
@@ -128,7 +132,7 @@ public class Elevator extends AbstractEntity<Long> {
 
     private void prepareToBeNotifiedIn() {
         List<Passenger> toBeTook = this.requests.values().stream()
-                .filter(request -> request.shouldIn(currentFloor, direction))
+                .filter(request -> request.shouldIn(currentFloor, nextDirection))
                 .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
         int fromIndex = 0;
         int toIndex = Math.min(toBeTook.size(), CAPACITY);
