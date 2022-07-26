@@ -9,7 +9,10 @@ import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  * @author YangXuehong
@@ -20,6 +23,7 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class RequestHistory extends AbstractEntity<Long> {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private Request request;
     private Long elevatorId;
     private Instant archivedOn;
@@ -37,10 +41,20 @@ public class RequestHistory extends AbstractEntity<Long> {
 
     public Data toData() {
         return new Data(id(), request.id(), request.getPassenger().getId(), request.getFrom().getValue(), request.getTo().getValue(),
-                request.getAt().toEpochMilli(),
-                Optional.ofNullable(request.getIn()).orElse(Instant.EPOCH).toEpochMilli(),
-                Optional.ofNullable(request.getOut()).orElse(Instant.EPOCH).toEpochMilli(),
-                StringUtils.defaultIfBlank(request.getStatus(), ""), elevatorId, archivedOn.toEpochMilli());
+                format(request.getAt()),
+                format(request.getIn()),
+                format(request.getOut()),
+                StringUtils.defaultIfBlank(request.getStatus(), ""),
+                elevatorId,
+                format(archivedOn));
+    }
+
+    private String format(Instant instant) {
+        if (Objects.isNull(instant)) {
+            return StringUtils.EMPTY;
+        } else {
+            return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
+        }
     }
 
     @AllArgsConstructor
@@ -52,11 +66,12 @@ public class RequestHistory extends AbstractEntity<Long> {
         private String passenger;
         private int from;
         private int to;
-        private long at;
-        private long in;
-        private long out;
+        private String at;
+        private String in;
+        private String out;
         private String status;
         private long elevatorId;
-        private long archivedOn;
+        private String archivedOn;
     }
+
 }

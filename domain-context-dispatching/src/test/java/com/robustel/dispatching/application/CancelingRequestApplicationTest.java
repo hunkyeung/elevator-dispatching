@@ -31,7 +31,9 @@ class CancelingRequestApplicationTest {
     @Test
     void Given_NotExistElevatorId_When_DoCancelRequest_Then_ThrowsElevatorNotFoundException() {
         when(elevatorRepository.findById(any())).thenReturn(Optional.empty());
-        CancelingRequestApplication.Command command = new CancelingRequestApplication.Command(Passenger.of("1"), "for test");
+        CancelingRequestApplication.Command command = new CancelingRequestApplication.Command();
+        command.setPassenger(Passenger.of("1"));
+        command.setCause("for test");
         assertThrows(ElevatorNotFoundException.class, () -> application.doCancelRequest(1L, command));
         verify(elevatorRepository).findById(1L);
         verify(elevatorRepository, never()).save(any(Elevator.class));
@@ -43,7 +45,9 @@ class CancelingRequestApplicationTest {
         Elevator elevator = mock(Elevator.class);
         when(elevator.cancelRequest(Passenger.of("1"), "for test")).thenReturn(mock(RequestHistory.class));
         when(elevatorRepository.findById(any())).thenReturn(Optional.ofNullable(elevator));
-        CancelingRequestApplication.Command command = new CancelingRequestApplication.Command(Passenger.of("1"), "for test");
+        CancelingRequestApplication.Command command = new CancelingRequestApplication.Command();
+        command.setPassenger(Passenger.of("1"));
+        command.setCause("for test");
         application.doCancelRequest(1L, command);
         verify(elevatorRepository).findById(1L);
         verify(elevator).cancelRequest(Passenger.of("1"), "for test");

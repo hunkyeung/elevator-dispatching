@@ -2,7 +2,8 @@ package com.robustel.dispatching.application;
 
 import com.robustel.dispatching.domain.robot.Robot;
 import com.robustel.dispatching.domain.robot.RobotRepository;
-import lombok.Getter;
+import lombok.Data;
+import lombok.ToString;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,7 +24,8 @@ public class RegisteringRobotApplication {
         return robot.id();
     }
 
-    @Getter
+    @Data
+    @ToString
     public static class Command {
         private String name;
         private String modelId;

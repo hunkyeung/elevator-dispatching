@@ -27,7 +27,13 @@ class RegisteringElevatorApplicationTest {
 
     @Test
     void test() {
-        RegisteringElevatorApplication.Command command = new RegisteringElevatorApplication.Command(1, "foobar", 50, -2, "2000", "2020");
+        RegisteringElevatorApplication.Command command = new RegisteringElevatorApplication.Command();
+        command.setId(1);
+        command.setName("foobar");
+        command.setHighest(50);
+        command.setLowest(-2);
+        command.setModelId("2000");
+        command.setSn("2020");
         application.doRegister(command);
         verify(repository).save(any(Elevator.class));
     }

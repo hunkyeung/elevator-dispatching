@@ -36,4 +36,8 @@ public class Floor implements ValueObject, Comparable<Floor> {
     public String toString() {
         return String.valueOf(this.value);
     }
+
+    public static int abs(Floor a, Floor b) {
+        return Math.abs(a.value - b.value);
+    }
 }

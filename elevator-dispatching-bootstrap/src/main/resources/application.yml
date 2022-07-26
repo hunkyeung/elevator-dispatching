@@ -24,7 +24,6 @@ server:
   #    key-store-password: 123456
   port: 8080
 robustel:
-  security-key: eb310a33-a93c-4f07-9b23-240579c7c270
   elevator-dispatching:
     elevator:
       event-resource: .e2c_s_ladder_control_rs485.arriving_event

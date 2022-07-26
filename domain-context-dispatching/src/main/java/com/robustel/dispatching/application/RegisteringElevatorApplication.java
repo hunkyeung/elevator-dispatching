@@ -5,9 +5,8 @@ import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRegisteredEvent;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
+import lombok.ToString;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,9 +29,8 @@ public class RegisteringElevatorApplication {
         return elevator.id();
     }
 
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Data
+    @ToString
     public static class Command {
         private long id;
         private String name;

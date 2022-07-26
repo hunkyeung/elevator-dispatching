@@ -6,9 +6,7 @@ import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 import lombok.ToString;
 import org.springframework.stereotype.Service;
 
@@ -32,17 +30,15 @@ public class FinishingApplication {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        RequestHistory requestHistory = elevator.finish(command.getPassenger());
+        RequestHistory requestHistory = elevator.finish(command.passenger);
         if (!Objects.isNull(requestHistory)) {
             requestHistoryRepository.save(requestHistory);
         }
         elevatorRepository.save(elevator);
     }
 
+    @Data
     @ToString
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class Command {
         private Passenger passenger;
     }
