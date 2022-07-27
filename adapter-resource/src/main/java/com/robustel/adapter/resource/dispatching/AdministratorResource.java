@@ -62,7 +62,7 @@ public class AdministratorResource {
         String commandName = (String) body.get("commandName");
         String parameter = (String) body.get("parameter");
         return RestResponse.ofSuccess(
-                executingInstructionApplication.doExecuteInstruction(String.valueOf(elevatorId), commandName, JSON.parseObject(parameter, Map.class))
+                executingInstructionApplication.doExecuteInstruction(String.valueOf(elevatorId), commandName, JSON.parseObject(parameter, Map.class)).getId()
         );
     }
 

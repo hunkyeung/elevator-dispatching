@@ -5,8 +5,6 @@ import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
-import lombok.Data;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -34,11 +32,6 @@ public class TakingElevatorApplication {
         return elevator.id();
     }
 
-    @Data
-    @ToString
-    public static class Command {
-        private Passenger passenger;
-        private Floor from;
-        private Floor to;
+    public record Command(Passenger passenger, Floor from, Floor to) {
     }
 }

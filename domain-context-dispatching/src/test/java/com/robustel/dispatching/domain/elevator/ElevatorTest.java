@@ -58,8 +58,8 @@ class ElevatorTest {
     @Test
     void Given_FloorAndDirection_When_Open_Then_CurrentFloorAndDirectionWereSet() {
         elevator.arrive(Floor.of(2), Direction.UP);
-        assertEquals(Floor.of(2), elevator.getCurrentFloor());
-        assertEquals(Direction.UP, elevator.getNextDirection());
+        assertNull(elevator.getCurrentFloor());
+        assertNull(elevator.getNextDirection());
     }
 
 
@@ -248,7 +248,7 @@ class ElevatorTest {
                 ElevatorState.NONE, requests, toBeNotified, Set.of(), null, onPassage, new ArrayList<>(), new HashSet<>());
         elevator.notifyPassengerIn();
 
-        assertEquals(ElevatorState.COMPLETED_IN, elevator.getState());
+        assertEquals(ElevatorState.NONE, elevator.getState());
         assertTrue(elevator.getToBeNotified().isEmpty());
         assertTrue(elevator.getTransferPassengers().isEmpty());
     }
@@ -469,7 +469,7 @@ class ElevatorTest {
         RequestHistory history = elevator.cancelRequest(passenger, "for test");
         assertEquals(request, history.getRequest());
         assertNotNull(history.getArchivedOn());
-        assertEquals(ElevatorState.COMPLETED_IN, elevator.getState());
+        assertEquals(ElevatorState.NONE, elevator.getState());
     }
 
     @Test

@@ -20,10 +20,7 @@ class TakingElevatorApplicationTest {
     void test() {
         Elevator elevator = mock(Elevator.class);
         when(ELEVATOR_REPOSITORY.findById(any())).thenReturn(Optional.ofNullable(elevator));
-        TakingElevatorApplication.Command command = new TakingElevatorApplication.Command();
-        command.setPassenger(Passenger.of("1"));
-        command.setFrom(Floor.of(1));
-        command.setTo(Floor.of(10));
+        TakingElevatorApplication.Command command = new TakingElevatorApplication.Command(Passenger.of("1"),Floor.of(1),Floor.of(10));
         TakingElevatorApplication application = new TakingElevatorApplication(SELECTING_ELEVATOR_STRATEGY_SERVICE, ELEVATOR_REPOSITORY);
         application.doTakeElevator(command);
         verify(SELECTING_ELEVATOR_STRATEGY_SERVICE).selectElevator(Passenger.of("1"), Floor.of(1), Floor.of(10));

@@ -1,13 +1,13 @@
 package com.robustel.dispatching.domain.requesthistory;
 
 import com.robustel.ddd.core.AbstractEntity;
-import com.robustel.ddd.core.ValueObject;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.elevator.Request;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -57,21 +57,8 @@ public class RequestHistory extends AbstractEntity<Long> {
         }
     }
 
-    @AllArgsConstructor
-    @ToString
-    @Getter
-    public static class Data implements ValueObject {
-        private long id;
-        private long requestId;
-        private String passenger;
-        private int from;
-        private int to;
-        private String at;
-        private String in;
-        private String out;
-        private String status;
-        private long elevatorId;
-        private String archivedOn;
-    }
+    public record Data(long id, long requestId, String passenger, int from, int to, String at, String in, String out,
+                       String status, long elevatorId, String archivedOn) implements Serializable {
 
+    }
 }

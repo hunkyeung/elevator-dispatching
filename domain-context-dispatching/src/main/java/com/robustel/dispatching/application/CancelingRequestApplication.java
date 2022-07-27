@@ -6,8 +6,6 @@ import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
-import lombok.Data;
-import lombok.ToString;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,10 +31,7 @@ public class CancelingRequestApplication {
         elevatorRepository.save(elevator);
     }
 
-    @Data
-    @ToString
-    public static class Command {
-        private Passenger passenger;
-        private String cause;
+    public record Command(Passenger passenger, String cause) {
+
     }
 }

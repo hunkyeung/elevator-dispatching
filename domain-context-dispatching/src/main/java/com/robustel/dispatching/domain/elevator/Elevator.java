@@ -140,18 +140,6 @@ public class Elevator extends AbstractEntity<Long> {
         this.toBeNotified = this.requests.values().stream()
                 .filter(request -> transferPassengers.contains(request.getPassenger()))
                 .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
-        //todo 由于目前无法获取电梯下一时刻运行方向，故只要匹配出发楼层就符合入梯条件。此时先进后进缺少了判断依据，对于一梯多机调度效率会有影响
-        /**
-         if (Direction.DOWN.equals(this.direction)) {
-         this.toBeNotified = this.requests.values().stream()
-         .filter(request -> transferStation.contains(request.getPassenger()))
-         .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
-         } else {
-         this.toBeNotified = this.requests.values().stream()
-         .filter(request -> transferStation.contains(request.getPassenger()))
-         .sorted(Comparator.comparing(Request::getTo).reversed()).map(Request::getPassenger).collect(Collectors.toList());
-         }
-         **/
         this.transferPassengers.clear();
         log.debug(String.format("准备待通知进梯乘客列表【%s】...", this.toBeNotified));
     }
@@ -159,7 +147,7 @@ public class Elevator extends AbstractEntity<Long> {
     private void notifyNextIn() {
         if (this.toBeNotified.isEmpty()) {
             this.state = ElevatorState.COMPLETED_IN;
-            ServiceLocator.service(ElevatorController.class).release(id());
+            release();
         } else {
             this.notified = this.toBeNotified.remove(0);
             ServiceLocator.service(PassengerController.class).pleaseIn(this.notified);
