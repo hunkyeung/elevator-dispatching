@@ -50,20 +50,6 @@ public class Request extends AbstractEntity<Long> {
         this.status = cause;
     }
 
-    public void finish(ElevatorState state) {
-        if (ElevatorState.WAITING_IN.equals(state)) {
-            if (Objects.isNull(in)) {
-                this.in = Instant.now();
-            } else {
-                log.debug("该乘客【{}】临时出进梯", getPassenger());
-            }
-        } else if (ElevatorState.WAITING_OUT.equals(state) && !Objects.isNull(in) && Objects.isNull(out)) {
-            this.out = Instant.now();
-        } else {
-            throw new IllegalStateException(String.format("乘梯请求状态不合法【%s】", this));
-        }
-    }
-
     public boolean shouldIn(Floor floor, Direction direction) {
         if (this.from.equals(floor)) {
             //todo 由于目前无法获取电梯下一时刻运行方向，故只要匹配出发楼层就符合入梯条件
@@ -75,5 +61,13 @@ public class Request extends AbstractEntity<Long> {
 
     public boolean shouldOut(Floor floor) {
         return this.to.equals(floor) && !Objects.isNull(this.in);
+    }
+
+    public void finishOut() {
+        this.out = Instant.now();
+    }
+
+    public void finishIn() {
+        this.in = Instant.now();
     }
 }

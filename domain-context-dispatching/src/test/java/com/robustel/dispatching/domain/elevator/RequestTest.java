@@ -48,27 +48,6 @@ class RequestTest {
     }
 
     @Test
-    void Given_NoneState_When_Finish_Then_ThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class,
-                () -> of.finish(ElevatorState.NONE));
-    }
-
-    @Test
-    void Given_InState_When_Finish_Then_InWasSet() {
-        assertNull(of.getIn());
-        of.finish(ElevatorState.WAITING_IN);
-        assertEquals(Instant.now().truncatedTo(ChronoUnit.SECONDS), of.getIn().truncatedTo(ChronoUnit.SECONDS));
-    }
-
-    @Test
-    void Given_OutState_When_Finish_Then_OutWasSet() {
-        Request of = new Request(1L, Passenger.of("1"), Floor.of(-1), Floor.of(2), Instant.now(), Instant.now(), null, null);
-        assertNull(of.getOut());
-        of.finish(ElevatorState.WAITING_OUT);
-        assertEquals(Instant.now().truncatedTo(ChronoUnit.SECONDS), of.getOut().truncatedTo(ChronoUnit.SECONDS));
-    }
-
-    @Test
     void Given_RequestFrom1To5AndCurrentFloor5_When_ShouldOut_Then_ReturnTrue() {
         Request request = new Request(1L, Passenger.of("1"), Floor.of(1), Floor.of(5), Instant.now(), Instant.now(), null, null);
         assertTrue(request.shouldOut(Floor.of(5)));

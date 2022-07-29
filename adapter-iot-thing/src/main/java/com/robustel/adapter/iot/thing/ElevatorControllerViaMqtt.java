@@ -40,7 +40,7 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
 
     @Override
     public void press(long elevatorId, Floor floor) {
-        Map<String, Object> params = Map.of(FLOOR, floor.getValue());
+        Map<String, Object> params = Map.of(FLOOR, floor);
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
                 press, params);

@@ -8,7 +8,7 @@ import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author YangXuehong
@@ -28,10 +28,8 @@ public class FinishingApplication {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new ElevatorNotFoundException(elevatorId)
         );
-        RequestHistory requestHistory = elevator.finish(command.passenger);
-        if (!Objects.isNull(requestHistory)) {
-            requestHistoryRepository.save(requestHistory);
-        }
+        Optional<RequestHistory> optionalRequestHistory = elevator.finish(command.passenger);
+        optionalRequestHistory.ifPresent(requestHistory -> requestHistoryRepository.save(requestHistory));
         elevatorRepository.save(elevator);
     }
 

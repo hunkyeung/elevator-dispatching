@@ -41,7 +41,7 @@ public class InitServiceLocator {
                         ElevatorController.class, new ElevatorController() {
                             @Override
                             public void press(long elevatorId, Floor floor) {
-                                System.out.println("light up " + floor);
+                                System.out.println("press " + floor);
                             }
 
                             @Override

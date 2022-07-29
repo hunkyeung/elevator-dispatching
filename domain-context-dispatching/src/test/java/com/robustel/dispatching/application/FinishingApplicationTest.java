@@ -41,7 +41,7 @@ class FinishingApplicationTest {
     @Test
     void Given_ExistElevatorIdAndOnPassage_When_DoFinish_Then_Expected() {
         Elevator elevator = mock(Elevator.class);
-        when(elevator.finish(Passenger.of("1"))).thenReturn(mock(RequestHistory.class));
+        when(elevator.finish(Passenger.of("1"))).thenReturn(Optional.ofNullable(mock(RequestHistory.class)));
         when(elevatorRepository.findById(any())).thenReturn(Optional.ofNullable(elevator));
         FinishingApplication.Command command = new FinishingApplication.Command(Passenger.of("1"));
         application.doFinish(1L, command);
@@ -54,7 +54,7 @@ class FinishingApplicationTest {
     @Test
     void Given_ExistElevatorIdAndNotOnPassage_When_DoFinish_Then_Expected() {
         Elevator elevator = mock(Elevator.class);
-        when(elevator.finish(Passenger.of("1"))).thenReturn(null);
+        when(elevator.finish(Passenger.of("1"))).thenReturn(Optional.empty());
         when(elevatorRepository.findById(any())).thenReturn(Optional.ofNullable(elevator));
         FinishingApplication.Command command = new FinishingApplication.Command(Passenger.of("1"));
         application.doFinish(1L, command);

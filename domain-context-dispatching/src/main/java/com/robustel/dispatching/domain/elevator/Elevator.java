@@ -6,7 +6,6 @@ import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,10 +16,9 @@ import java.util.stream.Collectors;
  * @author YangXuehong
  * @date 2022/4/8
  */
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @Getter
 @Slf4j
+@EqualsAndHashCode(callSuper = true)
 public class Elevator extends AbstractEntity<Long> {
     private static final int CAPACITY = 2;
     private String name;
@@ -29,6 +27,7 @@ public class Elevator extends AbstractEntity<Long> {
     private Floor currentFloor;
     private Direction nextDirection;
     private ElevatorState state;
+    private StateMode stateMode;
     private Set<Passenger> binding;//乘客绑定电梯
     private Map<String, Request> requests;//乘梯请求
     private List<Passenger> toBeNotified;//待通知乘客列表
@@ -47,7 +46,7 @@ public class Elevator extends AbstractEntity<Long> {
         this.lowest = lowest;
         this.currentFloor = currentFloor;
         this.nextDirection = nextDirection;
-        this.state = state;
+        this.stateMode = initStateMode(state);
         this.requests = requests;
         this.toBeNotified = toBeNotified;
         this.binding = binding;
@@ -55,6 +54,14 @@ public class Elevator extends AbstractEntity<Long> {
         this.onPassage = onPassage;
         this.transferPassengers = transferPassengers;
         this.pressedFloor = pressedFloor;
+    }
+
+    private StateMode initStateMode(ElevatorState state) {
+        return switch (state) {
+            case WAITING_OUT -> new WaitingOutStateMode();
+            case WAITING_IN -> new WaitingInStateMode();
+            default -> new NoneStateMode();
+        };
     }
 
     public static Elevator create(@NonNull String name, int highest, int lowest) {
@@ -97,18 +104,23 @@ public class Elevator extends AbstractEntity<Long> {
         }
         Request request = Request.create(passenger, from, to);
         this.requests.put(passenger.getId(), request);
-        if (this.pressedFloor.add(from)) {
-            ServiceLocator.service(ElevatorController.class).press(id(), from);
-        } else {
-            log.debug("存在相同楼层的请求，忽略楼层【{}】指令", from);
-        }
+        pressFloor(from);
     }
 
     public void arrive(@NonNull Floor floor, @NonNull Direction nextDirection) {
         this.currentFloor = floor;
         this.nextDirection = nextDirection;
         this.pressedFloor.remove(floor);
-        notifyPassengerOut();
+        this.stateMode = new WaitingOutStateMode();
+        this.stateMode.prepare();
+    }
+
+    public Optional<RequestHistory> finish(Passenger passenger) {
+        return stateMode.finish(passenger);
+    }
+
+    public RequestHistory cancelRequest(Passenger passenger, String cause) {
+        return stateMode.cancelRequest(passenger, cause);
     }
 
     public boolean isMatched(Floor from, Floor to) {
@@ -116,7 +128,7 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     public void release() {
-        this.state = ElevatorState.NONE;
+        this.stateMode = new NoneStateMode();
         this.notified = null;
         this.currentFloor = null;
         this.nextDirection = null;
@@ -124,99 +136,9 @@ public class Elevator extends AbstractEntity<Long> {
         ServiceLocator.service(ElevatorController.class).release(id());
     }
 
-    public void notifyPassengerIn() {
-        this.state = ElevatorState.WAITING_IN;
-        prepareToBeNotifiedIn();
-        notifyNext();
-    }
-
-    private void prepareToBeNotifiedIn() {
-        List<Passenger> toBeTook = this.requests.values().stream()
-                .filter(request -> request.shouldIn(currentFloor, nextDirection))
-                .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
-        int fromIndex = 0;
-        int toIndex = Math.min(toBeTook.size(), CAPACITY);
-        this.transferPassengers.addAll(toBeTook.subList(fromIndex, toIndex));
-        this.toBeNotified = this.requests.values().stream()
-                .filter(request -> transferPassengers.contains(request.getPassenger()))
-                .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
-        this.transferPassengers.clear();
-        log.debug(String.format("准备待通知进梯乘客列表【%s】...", this.toBeNotified));
-    }
-
-    private void notifyNextIn() {
-        if (this.toBeNotified.isEmpty()) {
-            this.state = ElevatorState.COMPLETED_IN;
-            release();
-        } else {
-            this.notified = this.toBeNotified.remove(0);
-            ServiceLocator.service(PassengerController.class).pleaseIn(this.notified);
-        }
-    }
-
-    public void notifyPassengerOut() {
-        this.state = ElevatorState.WAITING_OUT;
-        prepareToBeNotifiedOut();
-        notifyNext();
-    }
-
-    private void prepareToBeNotifiedOut() {
-        this.toBeNotified = this.requests.values().stream()
-                .filter(request -> request.shouldOut(currentFloor))
-                .map(Request::getPassenger)
-                .collect(Collectors.toList());
-    }
-
-    private void notifyNextOut() {
-        if (toBeNotified.isEmpty()) {
-            this.state = ElevatorState.COMPLETED_OUT;
-            notifyPassengerIn();
-        } else {
-            this.notified = new OnPassageStack().pop();
-            ServiceLocator.service(PassengerController.class).pleaseOut(this.notified);
-            if (!toBeNotified.remove(this.notified)) {
-                this.transferPassengers.add(this.notified);
-            }
-        }
-    }
-
-    public RequestHistory finish(Passenger passenger) {
-        if (Objects.isNull(notified) || !notified.equals(passenger)) {
-            throw new IllegalStateException(String.format("未通知该乘客【%s】出进梯", passenger.getId()));
-        }
-        this.notified = null;
-        Request request = this.requests.get(passenger.getId());
-        request.finish(this.state);
-        RequestHistory history = null;
-        if (ElevatorState.WAITING_OUT.equals(state)) {
-            history = RequestHistory.create(this.requests.remove(passenger.getId()), id());
-        } else if (ElevatorState.WAITING_IN.equals(state)) {
-            new OnPassageStack().push(request.getPassenger());
-            if (this.pressedFloor.add(request.getTo())) {
-                ServiceLocator.service(ElevatorController.class).press(id(), request.getTo());
-            }
-        }
-        notifyNext();
-        return history;
-    }
-
-    public RequestHistory cancelRequest(Passenger passenger, String cause) {
-        Request request = this.requests.remove(passenger.getId());
-        if (Objects.isNull(request)) {
-            log.warn("找不到该乘客【{}】乘梯【{}】请求", passenger, id());
-            throw new RequestNotFoundException(passenger, id());
-        }
-        request.cancel(cause);
-        this.notified = null;
-        notifyNext();
-        return RequestHistory.create(request, id());
-    }
-
-    private void notifyNext() {
-        if (ElevatorState.WAITING_OUT.equals(this.state)) {
-            notifyNextOut();
-        } else if (ElevatorState.WAITING_IN.equals(this.state)) {
-            notifyNextIn();
+    private void pressFloor(Floor floor) {
+        if (pressedFloor.add(floor)) {
+            ServiceLocator.service(ElevatorController.class).press(id(), floor);
         }
     }
 
@@ -225,8 +147,161 @@ public class Elevator extends AbstractEntity<Long> {
             return onPassage.remove(onPassage.size() - 1);
         }
 
+        public Passenger peak() {
+            return onPassage.get(onPassage.size() - 1);
+        }
+
         public void push(Passenger passenger) {
             onPassage.add(passenger);
         }
     }
+
+    private interface StateMode {
+        void prepare();
+
+        RequestHistory cancelRequest(Passenger passenger, String cause);
+
+        Optional<RequestHistory> finish(Passenger passenger);
+    }
+
+    private abstract class AbstractStateMode implements StateMode {
+
+        @Override
+        public void prepare() {
+        }
+
+        protected void process(Passenger passenger) {
+
+        }
+
+        @Override
+        public final RequestHistory cancelRequest(Passenger passenger, String cause) {
+            Request request = requests.remove(passenger.getId());
+            if (Objects.isNull(request)) {
+                log.warn("找不到该乘客【{}】乘梯【{}】请求", passenger, id());
+                throw new RequestNotFoundException(passenger, id());
+            }
+            request.cancel(cause);
+            onPassage.remove(passenger);
+            process(passenger);
+            return RequestHistory.create(request, id());
+        }
+
+        @Override
+        public Optional<RequestHistory> finish(Passenger passenger) {
+            throw new IllegalStateException(String.format("电梯当前状态为【%s】", state));
+        }
+    }
+
+
+    public class NoneStateMode extends AbstractStateMode {
+        public NoneStateMode() {
+            state = ElevatorState.NONE;
+        }
+    }
+
+    public abstract class AbstractNotNoneStateMode extends AbstractStateMode {
+        protected abstract void next();
+
+        @Override
+        protected void process(Passenger passenger) {
+            if (notified.equals(passenger)) {
+                next();
+            } else {
+                toBeNotified.remove(passenger);
+            }
+        }
+    }
+
+    private class WaitingOutStateMode extends AbstractNotNoneStateMode {
+        public WaitingOutStateMode() {
+            state = ElevatorState.WAITING_OUT;
+        }
+
+        @Override
+        public void prepare() {
+            toBeNotified = requests.values().stream()
+                    .filter(request -> request.shouldOut(currentFloor))
+                    .map(Request::getPassenger)
+                    .collect(Collectors.toList());
+            log.debug(String.format("准备待通知出梯乘客列表【%s】...", toBeNotified));
+            next();
+        }
+
+        @Override
+        protected void next() {
+            if (toBeNotified.isEmpty()) {
+                stateMode = new WaitingInStateMode();
+                stateMode.prepare();
+            } else {
+                notified = new OnPassageStack().peak();
+                ServiceLocator.service(PassengerController.class).pleaseOut(notified);
+                if (!toBeNotified.remove(notified)) {
+                    transferPassengers.add(notified);
+                }
+            }
+        }
+
+        @Override
+        public Optional<RequestHistory> finish(Passenger passenger) {
+            if (Objects.isNull(notified) || !notified.equals(passenger)) {
+                throw new IllegalStateException(String.format("未通知该乘客【%s】出进梯", passenger.getId()));
+            }
+            Request request = requests.remove(passenger.getId());
+            request.finishOut();
+            RequestHistory requestHistory = RequestHistory.create(request, id());
+            new OnPassageStack().pop();
+            next();
+            return Optional.ofNullable(requestHistory);
+        }
+
+    }
+
+    private class WaitingInStateMode extends AbstractNotNoneStateMode {
+
+        public WaitingInStateMode() {
+            state = ElevatorState.WAITING_IN;
+        }
+
+        @Override
+        public void prepare() {
+            List<Passenger> toBeTook = requests.values().stream()
+                    .filter(request -> request.shouldIn(currentFloor, nextDirection))
+                    .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
+            int fromIndex = 0;
+            int toIndex = Math.min(toBeTook.size(), CAPACITY);
+            transferPassengers.addAll(toBeTook.subList(fromIndex, toIndex));
+            toBeNotified = requests.values().stream()
+                    .filter(request -> transferPassengers.contains(request.getPassenger()))
+                    .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
+            transferPassengers.clear();
+            log.debug(String.format("准备待通知进梯乘客列表【%s】...", toBeNotified));
+            next();
+        }
+
+        @Override
+        protected void next() {
+            if (toBeNotified.isEmpty()) {
+                stateMode = new NoneStateMode();
+                release();
+            } else {
+                notified = toBeNotified.remove(0);
+                ServiceLocator.service(PassengerController.class).pleaseIn(notified);
+            }
+        }
+
+        @Override
+        public Optional<RequestHistory> finish(Passenger passenger) {
+            if (Objects.isNull(notified) || !notified.equals(passenger)) {
+                throw new IllegalStateException(String.format("未通知该乘客【%s】出进梯", passenger.getId()));
+            }
+            Request request = requests.get(passenger.getId());
+            request.finishIn();
+            new OnPassageStack().push(passenger);
+            pressFloor(request.getTo());
+            next();
+            return Optional.empty();
+        }
+    }
+
 }
