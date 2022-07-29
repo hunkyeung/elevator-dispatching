@@ -343,7 +343,7 @@ class ElevatorTest {
     }
 
     @Test
-    void Given_WaitingOutState_When_FinishWithNotified_Then_ThrowsIllegalStateException() {
+    void Given_WaitingOutState_When_FinishWithNotified_Then_Expected() {
         Passenger firstPassenger = Passenger.of("1");
         Passenger secondPassenger = Passenger.of("2");
         Passenger thirdPassenger = Passenger.of("3");
@@ -372,5 +372,138 @@ class ElevatorTest {
 
     }
 
+    //Waiting in State Mode
+
+    @Test
+    void Given_WaitingInState_When_CancelRequestWithNotified_Then_Expected() {
+        Passenger firstPassenger = Passenger.of("1");
+        Passenger secondPassenger = Passenger.of("2");
+        Passenger thirdPassenger = Passenger.of("3");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("1", firstRequest);
+        Request secondRequest = new Request(2L, secondPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("2", secondRequest);
+        Request thirdRequest = new Request(3L, thirdPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("3", thirdRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        toBeNotified.add(thirdPassenger);
+        toBeNotified.add(secondPassenger);
+        toBeNotified.add(firstPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), firstFloor, Direction.UP,
+                ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
+        elevator.cancelRequest(firstPassenger, "for test");
+        assertEquals(ElevatorState.WAITING_IN, elevator.getState());
+        assertTrue(onPassage.isEmpty());
+        assertEquals(secondPassenger, elevator.getNotified());
+        assertEquals(1, elevator.getToBeNotified().size());
+    }
+
+    @Test
+    void Given_WaitingInState_When_CancelRequestWithoutNotifiedButInToBeNotified_Then_Expected() {
+        Passenger firstPassenger = Passenger.of("1");
+        Passenger secondPassenger = Passenger.of("2");
+        Passenger thirdPassenger = Passenger.of("3");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("1", firstRequest);
+        Request secondRequest = new Request(2L, secondPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("2", secondRequest);
+        Request thirdRequest = new Request(3L, thirdPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("3", thirdRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        toBeNotified.add(thirdPassenger);
+        toBeNotified.add(secondPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
+                ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
+        elevator.cancelRequest(secondPassenger, "for test");
+        assertEquals(ElevatorState.WAITING_IN, elevator.getState());
+        assertEquals(firstPassenger, elevator.getNotified());
+        assertEquals(1, elevator.getToBeNotified().size());
+        assertFalse(elevator.getToBeNotified().contains(secondPassenger));
+    }
+
+    @Test
+    void Given_WaitingInState_When_CancelRequestWithoutNotifiedAndNotInToBeNotified_Then_Expected() {
+        Passenger firstPassenger = Passenger.of("1");
+        Passenger secondPassenger = Passenger.of("2");
+        Passenger thirdPassenger = Passenger.of("3");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("1", firstRequest);
+        Request secondRequest = new Request(2L, secondPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("2", secondRequest);
+        Request thirdRequest = new Request(3L, thirdPassenger, Floor.of(2), fifthFloor, Instant.now(), null, null, null);
+        requests.put("3", thirdRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        toBeNotified.add(secondPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
+                ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
+        elevator.cancelRequest(thirdPassenger, "for test");
+        assertEquals(ElevatorState.WAITING_IN, elevator.getState());
+        assertFalse(elevator.getRequests().containsValue(thirdRequest));
+        assertEquals(firstPassenger, elevator.getNotified());
+        assertEquals(1, elevator.getToBeNotified().size());
+    }
+
+    @Test
+    void Given_WaitingInState_When_FinishWithoutNotified_Then_ThrowsIllegalStateException() {
+        Passenger firstPassenger = Passenger.of("1");
+        Passenger secondPassenger = Passenger.of("2");
+        Passenger thirdPassenger = Passenger.of("3");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("1", firstRequest);
+        Request secondRequest = new Request(2L, secondPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("2", secondRequest);
+        Request thirdRequest = new Request(3L, thirdPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("3", thirdRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        toBeNotified.add(secondPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
+                ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
+        Assertions.assertThrows(IllegalStateException.class, () -> elevator.finish(thirdPassenger));
+
+    }
+
+    @Test
+    void Given_WaitingInState_When_FinishWithNotified_Then_Expected() {
+        Passenger firstPassenger = Passenger.of("1");
+        Passenger secondPassenger = Passenger.of("2");
+        Passenger thirdPassenger = Passenger.of("3");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("1", firstRequest);
+        Request secondRequest = new Request(2L, secondPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("2", secondRequest);
+        Request thirdRequest = new Request(3L, thirdPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("3", thirdRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        toBeNotified.add(secondPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
+                ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
+        Optional<RequestHistory> firstRequestHistory = elevator.finish(firstPassenger);
+        assertTrue(firstRequestHistory.isEmpty());
+        assertEquals(ElevatorState.WAITING_IN, elevator.getState());
+        assertEquals(secondPassenger, elevator.getNotified());
+        assertTrue(onPassage.contains(firstPassenger));
+        assertEquals(0, toBeNotified.size());
+
+    }
 
 }
