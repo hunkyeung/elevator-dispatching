@@ -72,7 +72,4 @@ public class ThingStatusRepositoryInMemoryAtRuntime extends ThingStatusRepositor
         return Optional.ofNullable(thingStatusTenantMap.get(getTenant())).orElse(Map.of()).values().stream().collect(Collectors.toList());
     }
 
-    public List<ThingStatus> findWithLocationGroup() {
-        return null;
-    }
 }
