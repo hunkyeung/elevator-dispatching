@@ -4,17 +4,16 @@ import com.robustel.adapter.persistence.mongodb.PersistentObject;
 import com.robustel.adapter.persistence.mongodb.thing.ThingStatusRepositoryMongoDB;
 import com.robustel.thing.domain.thing_status.ThingStatus;
 import com.robustel.thing.domain.thing_status.ThingStatusRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
+@Slf4j
 public class ThingStatusRepositoryInMemoryAtRuntime extends ThingStatusRepositoryMongoDB implements ThingStatusRepository {
     private Map<String, Map<String, ThingStatus>> thingStatusTenantMap;
 
@@ -35,23 +34,26 @@ public class ThingStatusRepositoryInMemoryAtRuntime extends ThingStatusRepositor
                     thingStatusTenantMap.get(tenantId).put(entity.getId(), entity);
                 }
         );
+
     }
 
     @Override
     public ThingStatus save(ThingStatus thingStatus) {
         if (!thingStatusTenantMap.containsKey(getTenant())) {
-            super.save(thingStatus);
-            Map<String, ThingStatus> thingStatusMap = new HashMap<>();
-            thingStatusMap.put(thingStatus.getId(), thingStatus);
-            thingStatusTenantMap.put(getTenant(), thingStatusMap);
+            thingStatusTenantMap.put(getTenant(), new HashMap<>());
         }
+        Map<String, ThingStatus> tenantMap = thingStatusTenantMap.get(getTenant());
+        if (Objects.isNull(tenantMap.get(thingStatus.getId()))) {
+            super.save(thingStatus);
+        }
+        tenantMap.put(thingStatus.getId(), thingStatus);
         return thingStatus;
     }
 
     @Override
     public void delete(ThingStatus thingStatus) {
         super.delete(thingStatus);
-        Optional.ofNullable(thingStatusTenantMap.get(getTenant())).orElse(new HashMap<>()).remove(thingStatus.getId());
+        Optional.ofNullable(thingStatusTenantMap.get(getTenant())).orElse(new HashMap<>()).remove(thingStatus.getId(), thingStatus);
     }
 
     @Override
