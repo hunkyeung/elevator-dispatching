@@ -17,7 +17,6 @@ public class ElevatorDispatchingBootstrapApplication {
         SpringApplication springApplication = new SpringApplication(ElevatorDispatchingBootstrapApplication.class);
         springApplication.addListeners(new SpringServiceRegistry());
         springApplication.run(args);
-//        SpringApplication.run(ElevatorDispatchingBootstrapApplication.class, args);
     }
 
 }

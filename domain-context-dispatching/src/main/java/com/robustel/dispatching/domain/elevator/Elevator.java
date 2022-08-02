@@ -1,12 +1,14 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.AbstractEntity;
+import com.robustel.ddd.core.DomainException;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -21,20 +23,20 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 public class Elevator extends AbstractEntity<Long> {
     private static final int CAPACITY = 2;
-    private String name;
-    private Floor highest;//最高楼层
-    private Floor lowest;//最低楼层
+    private final String name;
+    private final Floor highest;//最高楼层
+    private final Floor lowest;//最低楼层
     private Floor currentFloor;
     private Direction nextDirection;
     private ElevatorState state;
     private StateMode stateMode;
-    private Set<Passenger> binding;//乘客绑定电梯
-    private Map<String, Request> requests;//乘梯请求
+    private final Set<Passenger> binding;//乘客绑定电梯
+    private final Map<String, Request> requests;//乘梯请求
     private List<Passenger> toBeNotified;//待通知乘客列表
     private Passenger notified;//当前通知的乘客
     private List<Passenger> transferPassengers;//中转乘客
-    private List<Passenger> onPassage;//乘梯中的乘客
-    private Set<Floor> pressedFloor;
+    private final List<Passenger> onPassage;//乘梯中的乘客
+    private final Set<Floor> pressedFloor;
 
     public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
                     Direction nextDirection, ElevatorState state, Map<String, Request> requests,
@@ -65,8 +67,7 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     public static Elevator create(@NonNull String name, int highest, int lowest) {
-        Long id = ServiceLocator.service(UidGenerator.class).nextId();
-        return create(id, name, highest, lowest);
+        return create(ServiceLocator.service(UidGenerator.class).nextId(), name, highest, lowest);
     }
 
     public static Elevator create(long id, @NonNull String name, int highest, int lowest) {
@@ -143,8 +144,8 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     private class OnPassageStack {
-        public Passenger pop() {
-            return onPassage.remove(onPassage.size() - 1);
+        public void pop() {
+            onPassage.remove(onPassage.size() - 1);
         }
 
         public Passenger peak() {
@@ -189,7 +190,7 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public Optional<RequestHistory> finish(Passenger passenger) {
-            throw new IllegalStateException(String.format("电梯当前状态为【%s】", state));
+            throw new RequestFinishedNotAllowedException(String.format("电梯当前状态为【%s】，不允许执行完成【finish】动作", state));
         }
     }
 
@@ -245,14 +246,14 @@ public class Elevator extends AbstractEntity<Long> {
         @Override
         public Optional<RequestHistory> finish(Passenger passenger) {
             if (Objects.isNull(notified) || !notified.equals(passenger)) {
-                throw new IllegalStateException(String.format("未通知该乘客【%s】出进梯", passenger.getId()));
+                throw new RequestFinishedNotAllowedException(String.format("未通知该乘客【%s】出进梯，不允许执行完成【finish】动作", passenger.getId()));
             }
             Request request = requests.remove(passenger.getId());
             request.finishOut();
             RequestHistory requestHistory = RequestHistory.create(request, id());
             new OnPassageStack().pop();
             next();
-            return Optional.ofNullable(requestHistory);
+            return Optional.of(requestHistory);
         }
 
     }
@@ -293,7 +294,7 @@ public class Elevator extends AbstractEntity<Long> {
         @Override
         public Optional<RequestHistory> finish(Passenger passenger) {
             if (Objects.isNull(notified) || !notified.equals(passenger)) {
-                throw new IllegalStateException(String.format("未通知该乘客【%s】出进梯", passenger.getId()));
+                throw new RequestFinishedNotAllowedException(String.format("未通知该乘客【%s】出进梯，不允许执行完成【finish】动作", passenger.getId()));
             }
             Request request = requests.get(passenger.getId());
             request.finishIn();
@@ -304,4 +305,43 @@ public class Elevator extends AbstractEntity<Long> {
         }
     }
 
+    /**
+     * @author YangXuehong
+     * @date 2022/4/19
+     */
+    @ToString(callSuper = true)
+    public static class ElevatorNotFoundException extends DomainException {
+        public ElevatorNotFoundException(Long elevatorId) {
+            super(String.format("找不到该电梯【%s】", elevatorId));
+        }
+    }
+
+    /**
+     * @author YangXuehong
+     * @date 2022/4/19
+     */
+    @ToString(callSuper = true)
+    public static class RequestNotFoundException extends DomainException {
+        public RequestNotFoundException(Passenger passenger, Long elevatorId) {
+            super(String.format("找不到该乘客【%s】乘梯【%s】请求", passenger, elevatorId));
+        }
+    }
+
+    /**
+     * @author YangXuehong
+     * @date 2022/4/19
+     */
+    @ToString(callSuper = true)
+    public static class RequestAlreadyExistException extends DomainException {
+        public RequestAlreadyExistException(Passenger passenger, Long elevatorId) {
+            super(String.format("已经存在该机器人【%s】搭乘电梯【%s】请求", passenger, elevatorId));
+        }
+    }
+
+    @ToString(callSuper = true)
+    public static class RequestFinishedNotAllowedException extends DomainException {
+        public RequestFinishedNotAllowedException(String message) {
+            super(message);
+        }
+    }
 }

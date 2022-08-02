@@ -1,7 +1,6 @@
 package com.robustel.dispatching.application;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
-import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,7 @@ class ReleasingElevatorApplicationTest {
 
     @Test
     void Given_NotExistElevator_When_DoRelease_Then_ElevatorNotFoundException() {
-        assertThrows(ElevatorNotFoundException.class, () -> application.doReleaseElevator(1L));
+        assertThrows(Elevator.ElevatorNotFoundException.class, () -> application.doReleaseElevator(1L));
     }
 
     @Test

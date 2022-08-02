@@ -67,7 +67,7 @@ class ElevatorTest {
                 new ArrayList<>(), new ArrayList<>(), new HashSet<>());
         elevator.take(passenger, first, fifth);
         assertTrue(elevator.getPressedFloor().contains(first));
-        assertThrows(RequestAlreadyExistException.class, () -> elevator.take(passenger, first, fifth));
+        assertThrows(Elevator.RequestAlreadyExistException.class, () -> elevator.take(passenger, first, fifth));
     }
 
 
@@ -167,7 +167,7 @@ class ElevatorTest {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger), null, onPassage, new ArrayList<>(), new HashSet<>());
         Passenger of = Passenger.of("100");
-        Assertions.assertThrows(RequestNotFoundException.class, () -> elevator.cancelRequest(of, ""));
+        Assertions.assertThrows(Elevator.RequestNotFoundException.class, () -> elevator.cancelRequest(of, ""));
     }
 
     @Test

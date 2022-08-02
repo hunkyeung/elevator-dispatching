@@ -55,7 +55,6 @@ public class AdministratorResource {
         return RestResponse.ofSuccessWithoutResult();
     }
 
-    //todo 临时封装接口，用于解决APaaS HTTP连接器无法传body内容
     @PostMapping("/elevators/commands")
     public RestResponse<String> executeCommand(@RequestBody Map<String, Object> body) {
         String elevatorId = (String) body.get("elevatorId");
@@ -97,10 +96,10 @@ public class AdministratorResource {
             @RequestParam(required = false) Long elevatorId, @RequestParam(required = false) String passenger,
             @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) Integer pageNum) {
         if (Objects.isNull(pageNum)) {
-            pageNum = Integer.valueOf(1);
+            pageNum = 1;
         }
         if (Objects.isNull(pageSize)) {
-            pageSize = Integer.valueOf(20);
+            pageSize = 20;
         }
         return RestResponse.ofSuccess(gettingRequestHistoryApplication.getRequestHistory(elevatorId, passenger, Page.of(pageSize, pageNum)));
     }

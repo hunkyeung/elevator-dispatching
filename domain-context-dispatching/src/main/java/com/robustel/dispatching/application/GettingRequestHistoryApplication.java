@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class GettingRequestHistoryApplication {
@@ -32,7 +31,7 @@ public class GettingRequestHistoryApplication {
             builder.matching(Type.EQ, REQUEST_PASSENGER_ID, passenger);
         }
         PageResult<RequestHistory> requestHistoryPageResult = repository.findByCriteria(builder.build(), page);
-        List<RequestHistory.Data> requestHistoryDataList = requestHistoryPageResult.getRows().stream().map(requestHistory -> requestHistory.toData()).collect(Collectors.toList());
+        List<RequestHistory.Data> requestHistoryDataList = requestHistoryPageResult.getRows().stream().map(RequestHistory::toData).toList();
         return requestHistoryPageResult.of(requestHistoryDataList);
     }
 

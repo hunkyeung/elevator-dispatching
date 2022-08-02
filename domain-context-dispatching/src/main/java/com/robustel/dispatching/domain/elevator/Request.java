@@ -51,12 +51,8 @@ public class Request extends AbstractEntity<Long> {
     }
 
     public boolean shouldIn(Floor floor, Direction direction) {
-        if (this.from.equals(floor)) {
-            //todo 由于目前无法获取电梯下一时刻运行方向，故只要匹配出发楼层就符合入梯条件
-            return true;
-        } else {
-            return false;
-        }
+        //todo 由于目前边缘侧设备无法准备上报电梯运行方向，故暂时忽略方向
+        return this.from.equals(floor);
     }
 
     public boolean shouldOut(Floor floor) {

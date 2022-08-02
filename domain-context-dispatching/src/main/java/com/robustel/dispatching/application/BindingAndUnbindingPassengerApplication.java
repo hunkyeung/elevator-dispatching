@@ -1,7 +1,6 @@
 package com.robustel.dispatching.application;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
-import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,7 @@ public class BindingAndUnbindingPassengerApplication {
 
     public void doBind(Long elevatorId, String passengerId) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
-                () -> new ElevatorNotFoundException(elevatorId)
+                () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         elevator.bind(Passenger.of(passengerId));
         elevatorRepository.save(elevator);
@@ -28,7 +27,7 @@ public class BindingAndUnbindingPassengerApplication {
 
     public void doUnbind(Long elevatorId, String robotId) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
-                () -> new ElevatorNotFoundException(elevatorId)
+                () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         elevator.unbind(Passenger.of(robotId));
         elevatorRepository.save(elevator);

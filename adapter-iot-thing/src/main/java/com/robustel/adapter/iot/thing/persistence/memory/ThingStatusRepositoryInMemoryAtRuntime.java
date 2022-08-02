@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
@@ -69,7 +68,7 @@ public class ThingStatusRepositoryInMemoryAtRuntime extends ThingStatusRepositor
 
     @Override
     public List<ThingStatus> findAll() {
-        return Optional.ofNullable(thingStatusTenantMap.get(getTenant())).orElse(Map.of()).values().stream().collect(Collectors.toList());
+        return Optional.ofNullable(thingStatusTenantMap.get(getTenant())).orElse(Map.of()).values().stream().toList();
     }
 
 }

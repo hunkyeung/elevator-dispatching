@@ -17,7 +17,7 @@ public class ArrivingTheFloorApplication {
 
     public void doArrive(Long elevatorId, Floor floor, Direction nextDirection) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
-                () -> new ElevatorNotFoundException(elevatorId)
+                () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         elevator.arrive(floor, nextDirection);
         elevatorRepository.save(elevator);

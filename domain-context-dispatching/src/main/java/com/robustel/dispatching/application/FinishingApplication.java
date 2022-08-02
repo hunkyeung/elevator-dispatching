@@ -1,7 +1,6 @@
 package com.robustel.dispatching.application;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
-import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
@@ -26,10 +25,10 @@ public class FinishingApplication {
 
     public void doFinish(Long elevatorId, Command command) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
-                () -> new ElevatorNotFoundException(elevatorId)
+                () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         Optional<RequestHistory> optionalRequestHistory = elevator.finish(command.passenger);
-        optionalRequestHistory.ifPresent(requestHistory -> requestHistoryRepository.save(requestHistory));
+        optionalRequestHistory.ifPresent(requestHistoryRepository::save);
         elevatorRepository.save(elevator);
     }
 

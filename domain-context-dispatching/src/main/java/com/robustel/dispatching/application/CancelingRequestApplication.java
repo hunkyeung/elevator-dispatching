@@ -1,7 +1,6 @@
 package com.robustel.dispatching.application;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
-import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
@@ -24,7 +23,7 @@ public class CancelingRequestApplication {
 
     public void doCancelRequest(Long elevatorId, Command command) {
         Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
-                () -> new ElevatorNotFoundException(elevatorId)
+                () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         RequestHistory requestHistory = elevator.cancelRequest(command.passenger, command.cause);
         requestHistoryRepository.save(requestHistory);

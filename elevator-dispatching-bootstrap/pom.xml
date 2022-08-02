@@ -26,10 +26,6 @@
         </dependency>
         <dependency>
             <groupId>com.robustel</groupId>
-            <artifactId>iot-thing-bootstrap</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.robustel</groupId>
             <artifactId>adapter-iot-thing-dispatching</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

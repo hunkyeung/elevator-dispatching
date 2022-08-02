@@ -1,6 +1,7 @@
 package com.robustel.dispatching.domain.robot;
 
 import com.robustel.ddd.core.AbstractEntity;
+import com.robustel.ddd.core.DomainException;
 import com.robustel.ddd.service.EventPublisher;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
@@ -28,4 +29,14 @@ public class Robot extends AbstractEntity<Long> {
         return new Robot(id, name);
     }
 
+    /**
+     * @author YangXuehong
+     * @date 2022/4/19
+     */
+    @ToString(callSuper = true)
+    public static class RobotNotFoundException extends DomainException {
+        public RobotNotFoundException(Long robotId) {
+            super(String.format("找不到该机器人【%s】", robotId));
+        }
+    }
 }

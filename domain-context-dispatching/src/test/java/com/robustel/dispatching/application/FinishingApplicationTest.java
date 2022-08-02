@@ -1,7 +1,6 @@
 package com.robustel.dispatching.application;
 
 import com.robustel.dispatching.domain.elevator.Elevator;
-import com.robustel.dispatching.domain.elevator.ElevatorNotFoundException;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
@@ -32,7 +31,7 @@ class FinishingApplicationTest {
     void Given_NotExistElevatorId_When_DoCancelRequest_Then_ThrowsElevatorNotFoundException() {
         when(elevatorRepository.findById(any())).thenReturn(Optional.empty());
         FinishingApplication.Command command = new FinishingApplication.Command(Passenger.of("1"));
-        assertThrows(ElevatorNotFoundException.class, () -> application.doFinish(1L, command));
+        assertThrows(Elevator.ElevatorNotFoundException.class, () -> application.doFinish(1L, command));
         verify(elevatorRepository).findById(1L);
         verify(elevatorRepository, never()).save(any(Elevator.class));
     }
@@ -42,7 +41,7 @@ class FinishingApplicationTest {
     void Given_ExistElevatorIdAndOnPassage_When_DoFinish_Then_Expected() {
         Elevator elevator = mock(Elevator.class);
         when(elevator.finish(Passenger.of("1"))).thenReturn(Optional.ofNullable(mock(RequestHistory.class)));
-        when(elevatorRepository.findById(any())).thenReturn(Optional.ofNullable(elevator));
+        when(elevatorRepository.findById(any())).thenReturn(Optional.of(elevator));
         FinishingApplication.Command command = new FinishingApplication.Command(Passenger.of("1"));
         application.doFinish(1L, command);
         verify(elevatorRepository).findById(1L);
@@ -55,7 +54,7 @@ class FinishingApplicationTest {
     void Given_ExistElevatorIdAndNotOnPassage_When_DoFinish_Then_Expected() {
         Elevator elevator = mock(Elevator.class);
         when(elevator.finish(Passenger.of("1"))).thenReturn(Optional.empty());
-        when(elevatorRepository.findById(any())).thenReturn(Optional.ofNullable(elevator));
+        when(elevatorRepository.findById(any())).thenReturn(Optional.of(elevator));
         FinishingApplication.Command command = new FinishingApplication.Command(Passenger.of("1"));
         application.doFinish(1L, command);
         verify(elevatorRepository).findById(1L);

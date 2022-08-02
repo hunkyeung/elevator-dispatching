@@ -12,6 +12,7 @@ import static org.mockito.Mockito.*;
 
 class ArrivingTheFloorApplicationTest {
 
+    private final Floor of = Floor.of(1);
     private ElevatorRepository repository;
     private ArrivingTheFloorApplication application;
 
@@ -24,8 +25,8 @@ class ArrivingTheFloorApplicationTest {
     @Test
     void Given_NotExistElevatorId_When_DoArrive_Then_ThrowsElevatorNotFoundException() {
         when(repository.findById(any())).thenReturn(Optional.empty());
-        Assertions.assertThrows(ElevatorNotFoundException.class,
-                () -> application.doArrive(0L, Floor.of(1), Direction.STOP));
+        Assertions.assertThrows(Elevator.ElevatorNotFoundException.class,
+                () -> application.doArrive(0L, of, Direction.STOP));
     }
 
     @Test
