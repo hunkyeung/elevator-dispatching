@@ -39,7 +39,7 @@ public class Request extends AbstractEntity<Long> {
     }
 
     public static Request create(@NonNull Passenger passenger, @NonNull Floor from, @NonNull Floor to) {
-        Long id = ServiceLocator.service(UidGenerator.class).nextId();
+        var id = ServiceLocator.service(UidGenerator.class).nextId();
         if (from.equals(to)) {
             throw new IllegalArgumentException("出发楼层与目标楼层不能相同");
         }
@@ -51,7 +51,7 @@ public class Request extends AbstractEntity<Long> {
     }
 
     public boolean shouldIn(Floor floor, Direction direction) {
-        //todo 由于目前边缘侧设备无法准备上报电梯运行方向，故暂时忽略方向
+        log.debug("{}", direction);
         return this.from.equals(floor);
     }
 

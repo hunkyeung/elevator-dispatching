@@ -28,8 +28,8 @@ public class ManageringThingController {
 
     @Subscribe
     public void registerThing(ElevatorRegisteredEvent event) {
-        String thingId = String.valueOf(event.getElevatorId());
-        RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
+        var thingId = String.valueOf(event.getElevatorId());
+        var command = new RegisterThingCommand(thingId, thingId,
                 null, null, null
                 , null, null
                 , event.getModelId(), event.getSn());
@@ -43,8 +43,8 @@ public class ManageringThingController {
 
     @Subscribe
     public void registerRobot(RobotRegisteredEvent event) {
-        String thingId = String.valueOf(event.getRobotId());
-        RegisterThingCommand command = new RegisterThingCommand(thingId, thingId,
+        var thingId = String.valueOf(event.getRobotId());
+        var command = new RegisterThingCommand(thingId, thingId,
                 null, null, null
                 , null, null
                 , event.getModelId(), null);

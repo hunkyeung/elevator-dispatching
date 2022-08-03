@@ -3,11 +3,8 @@ package com.robustel.dispatching.application;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
-import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * @author YangXuehong
@@ -24,10 +21,10 @@ public class FinishingApplication {
     }
 
     public void doFinish(Long elevatorId, Command command) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
+        var elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
-        Optional<RequestHistory> optionalRequestHistory = elevator.finish(command.passenger);
+        var optionalRequestHistory = elevator.finish(command.passenger);
         optionalRequestHistory.ifPresent(requestHistoryRepository::save);
         elevatorRepository.save(elevator);
     }

@@ -17,7 +17,7 @@ public class RegisteringRobotApplication {
     }
 
     public Long doRegister(Command command) {
-        Robot robot = Robot.create(command.name, command.modelId);
+        var robot = Robot.create(command.name, command.modelId);
         robotRepository.save(robot);
         return robot.id();
     }

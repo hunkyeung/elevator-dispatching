@@ -28,7 +28,7 @@ public class DefaultSelectingElevatorStrategyService extends AbstractSelectingEl
 
     @Override
     protected Optional<Elevator> select(Passenger passenger, Floor from, Floor to) {
-        Query query = new Query.Builder()
+        var query = new Query.Builder()
                 .matching(Type.IN, "binding", Arrays.asList(passenger))
                 .build();
         return elevatorRepository.findByCriteria(query).stream().filter(

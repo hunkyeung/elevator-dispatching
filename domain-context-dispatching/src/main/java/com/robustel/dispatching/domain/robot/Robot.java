@@ -24,7 +24,7 @@ public class Robot extends AbstractEntity<Long> {
     }
 
     public static Robot create(@NonNull String name, @NonNull String modelId) {
-        long id = ServiceLocator.service(UidGenerator.class).nextId();
+        var id = ServiceLocator.service(UidGenerator.class).nextId();
         ServiceLocator.service(EventPublisher.class).publish(new RobotRegisteredEvent(id, modelId));
         return new Robot(id, name);
     }

@@ -23,7 +23,7 @@ public class GettingRequestHistoryApplication {
     }
 
     public PageResult<RequestHistory.Data> getRequestHistory(Long elevatorId, String passenger, Page page) {
-        Query.Builder builder = new Query.Builder();
+        var builder = new Query.Builder();
         if (Objects.nonNull(elevatorId)) {
             builder.matching(Type.EQ, ELEVATOR_ID, elevatorId);
         }

@@ -103,7 +103,7 @@ public class Elevator extends AbstractEntity<Long> {
         if (this.requests.containsKey(passenger.getId())) {
             throw new RequestAlreadyExistException(passenger, id());
         }
-        Request request = Request.create(passenger, from, to);
+        var request = Request.create(passenger, from, to);
         this.requests.put(passenger.getId(), request);
         pressFloor(from);
     }
@@ -177,7 +177,7 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public final RequestHistory cancelRequest(Passenger passenger, String cause) {
-            Request request = requests.remove(passenger.getId());
+            var request = requests.remove(passenger.getId());
             if (Objects.isNull(request)) {
                 log.warn("找不到该乘客【{}】乘梯【{}】请求", passenger, id());
                 throw new RequestNotFoundException(passenger, id());
@@ -260,9 +260,9 @@ public class Elevator extends AbstractEntity<Long> {
             if (Objects.isNull(notified) || !notified.equals(passenger)) {
                 throw new RequestFinishedNotAllowedException(String.format("未通知该乘客【%s】出进梯，不允许执行完成【finish】动作", passenger.getId()));
             }
-            Request request = requests.remove(passenger.getId());
+            var request = requests.remove(passenger.getId());
             request.finishOut();
-            RequestHistory requestHistory = RequestHistory.create(request, id());
+            var requestHistory = RequestHistory.create(request, id());
             new OnPassageStack().pop();
             next();
             return Optional.of(requestHistory);
@@ -278,11 +278,11 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public void prepare() {
-            List<Passenger> toBeTook = requests.values().stream()
+            var toBeTook = requests.values().stream()
                     .filter(request -> request.shouldIn(currentFloor, nextDirection))
                     .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
-            int fromIndex = 0;
-            int toIndex = Math.min(toBeTook.size(), CAPACITY);
+            var fromIndex = 0;
+            var toIndex = Math.min(toBeTook.size(), CAPACITY);
             transferPassengers.addAll(toBeTook.subList(fromIndex, toIndex));
             toBeNotified = requests.values().stream()
                     .filter(request -> transferPassengers.contains(request.getPassenger()))
@@ -308,7 +308,7 @@ public class Elevator extends AbstractEntity<Long> {
             if (Objects.isNull(notified) || !notified.equals(passenger)) {
                 throw new RequestFinishedNotAllowedException(String.format("未通知该乘客【%s】出进梯，不允许执行完成【finish】动作", passenger.getId()));
             }
-            Request request = requests.get(passenger.getId());
+            var request = requests.get(passenger.getId());
             request.finishIn();
             new OnPassageStack().push(passenger);
             pressFloor(request.getTo());

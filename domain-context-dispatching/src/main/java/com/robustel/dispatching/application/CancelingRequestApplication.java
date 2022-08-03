@@ -3,7 +3,6 @@ package com.robustel.dispatching.application;
 import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Passenger;
-import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import com.robustel.dispatching.domain.requesthistory.RequestHistoryRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +21,10 @@ public class CancelingRequestApplication {
     }
 
     public void doCancelRequest(Long elevatorId, Command command) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
+        var elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
-        RequestHistory requestHistory = elevator.cancelRequest(command.passenger, command.cause);
+        var requestHistory = elevator.cancelRequest(command.passenger, command.cause);
         requestHistoryRepository.save(requestHistory);
         elevatorRepository.save(elevator);
     }

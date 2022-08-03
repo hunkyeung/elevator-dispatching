@@ -61,7 +61,7 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
         if (pressedFloor.isEmpty()) {
             return;
         }
-        String floors = StringUtils.join(pressedFloor, ",");
+        var floors = StringUtils.join(pressedFloor, ",");
         Map<String, Object> params = Map.of(FLOOR, floors);
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
@@ -74,8 +74,8 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
         // 当电梯开门时
         if (event.getFact().get(URI).equals(eventResource)) {
             Map<String, Object> properties = ((Map) event.getFact().get(PROPERTIES));
-            int floor = Integer.parseInt((String) properties.get(FLOOR));
-            Direction direction = Direction.valueOf((String) properties.get(DIRECTION));
+            var floor = Integer.parseInt((String) properties.get(FLOOR));
+            var direction = Direction.valueOf((String) properties.get(DIRECTION));
             log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);
             arrivingTheFloorApplication.doArrive(Long.valueOf(event.getInstanceId()), Floor.of(floor), direction);
         }

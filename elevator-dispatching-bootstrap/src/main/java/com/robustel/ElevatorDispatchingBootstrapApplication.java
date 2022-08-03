@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ElevatorDispatchingBootstrapApplication {
 
     public static void main(String[] args) {
-        SpringApplication springApplication = new SpringApplication(ElevatorDispatchingBootstrapApplication.class);
+        var springApplication = new SpringApplication(ElevatorDispatchingBootstrapApplication.class);
         springApplication.addListeners(new SpringServiceRegistry());
         springApplication.run(args);
     }

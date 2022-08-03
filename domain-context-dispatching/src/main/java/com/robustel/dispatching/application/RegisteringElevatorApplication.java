@@ -20,7 +20,7 @@ public class RegisteringElevatorApplication {
     }
 
     public Long doRegister(Command command) {
-        Elevator elevator = Elevator.create(command.id, command.name,
+        var elevator = Elevator.create(command.id, command.name,
                 command.highest, command.lowest);
         elevatorRepository.save(elevator);
         ServiceLocator.service(EventPublisher.class).publish(new ElevatorRegisteredEvent(elevator.id(), command.modelId, command.sn));

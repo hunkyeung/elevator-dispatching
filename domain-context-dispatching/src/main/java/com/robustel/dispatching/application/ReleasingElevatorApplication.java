@@ -13,7 +13,7 @@ public class ReleasingElevatorApplication {
     }
 
     public void doReleaseElevator(Long elevatorId) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
+        var elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         elevator.release();

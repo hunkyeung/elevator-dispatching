@@ -18,7 +18,7 @@ public class BindingAndUnbindingPassengerApplication {
     }
 
     public void doBind(Long elevatorId, String passengerId) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
+        var elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         elevator.bind(Passenger.of(passengerId));
@@ -26,7 +26,7 @@ public class BindingAndUnbindingPassengerApplication {
     }
 
     public void doUnbind(Long elevatorId, String robotId) {
-        Elevator elevator = elevatorRepository.findById(elevatorId).orElseThrow(
+        var elevator = elevatorRepository.findById(elevatorId).orElseThrow(
                 () -> new Elevator.ElevatorNotFoundException(elevatorId)
         );
         elevator.unbind(Passenger.of(robotId));

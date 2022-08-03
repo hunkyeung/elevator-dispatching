@@ -21,7 +21,7 @@ public class GlobalExceptionHandlerDispatching {
     @ExceptionHandler(DomainException.class)
     public RestResponse<Void> runtimeExceptionHandler(HttpServletRequest request, final DomainException exception, HttpServletResponse response) {
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        exception.printStackTrace();
+        log.error(exception.getMessage(), exception);
         return RestResponse.ofFailure(exception.getClass().getSimpleName(), exception.getMessage());
     }
 

@@ -2,14 +2,11 @@ package com.robustel.dispatching.application;
 
 import com.robustel.ddd.core.DomainException;
 import com.robustel.dispatching.domain.SelectingElevatorStrategyService;
-import com.robustel.dispatching.domain.elevator.Elevator;
 import com.robustel.dispatching.domain.elevator.ElevatorRepository;
 import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.dispatching.domain.elevator.Passenger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * @author YangXuehong
@@ -28,7 +25,7 @@ public class TakingElevatorApplication {
 
     public Long doTakeElevator(Command command) {
         log.debug("等待调度{}", command);
-        Optional<Elevator> optionalElevator = selectingElevatorStrategyService.selectElevator(command.passenger, command.from, command.to);
+        var optionalElevator = selectingElevatorStrategyService.selectElevator(command.passenger, command.from, command.to);
         optionalElevator.ifPresent(
                 elevator -> {
                     elevator.take(command.passenger, command.from, command.to);
