@@ -138,9 +138,7 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     private void pressFloor(Floor floor) {
-        if (pressedFloor.add(floor)) {
-            ServiceLocator.service(ElevatorController.class).press(id(), floor);
-        }
+        stateMode.press(floor);
     }
 
     private class OnPassageStack {
@@ -163,6 +161,8 @@ public class Elevator extends AbstractEntity<Long> {
         RequestHistory cancelRequest(Passenger passenger, String cause);
 
         Optional<RequestHistory> finish(Passenger passenger);
+
+        void press(Floor floor);
     }
 
     private abstract class AbstractStateMode implements StateMode {
@@ -199,6 +199,13 @@ public class Elevator extends AbstractEntity<Long> {
         public NoneStateMode() {
             state = ElevatorState.NONE;
         }
+
+        @Override
+        public void press(Floor floor) {
+            if (pressedFloor.add(floor)) {
+                ServiceLocator.service(ElevatorController.class).press(id(), floor);
+            }
+        }
     }
 
     public abstract class AbstractNotNoneStateMode extends AbstractStateMode {
@@ -211,6 +218,11 @@ public class Elevator extends AbstractEntity<Long> {
             } else {
                 toBeNotified.remove(passenger);
             }
+        }
+
+        @Override
+        public void press(Floor floor) {
+            pressedFloor.add(floor);
         }
     }
 
@@ -283,7 +295,7 @@ public class Elevator extends AbstractEntity<Long> {
         @Override
         protected void next() {
             if (toBeNotified.isEmpty()) {
-                stateMode = new NoneStateMode();
+                ServiceLocator.service(ElevatorController.class).press(id(), pressedFloor);
                 release();
             } else {
                 notified = toBeNotified.remove(0);

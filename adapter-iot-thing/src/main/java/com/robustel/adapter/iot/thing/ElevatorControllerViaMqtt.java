@@ -8,10 +8,12 @@ import com.robustel.dispatching.domain.elevator.Floor;
 import com.robustel.rule.domain.matched_event.MatchedEvent;
 import com.robustel.thing.application.ExecutingInstructionApplication;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author YangXuehong
@@ -52,6 +54,19 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
         executingInstructionApplication.doExecuteInstruction(
                 String.valueOf(elevatorId),
                 release, Map.of());
+    }
+
+    @Override
+    public void press(long elevatorId, Set<Floor> pressedFloor) {
+        if (pressedFloor.isEmpty()) {
+            return;
+        }
+        String floors = StringUtils.join(pressedFloor, ",");
+        Map<String, Object> params = Map.of(FLOOR, floors);
+        executingInstructionApplication.doExecuteInstruction(
+                String.valueOf(elevatorId),
+                press, params);
+        log.debug("按电梯【{}】第【{}】层按钮", elevatorId, floors);
     }
 
     @Subscribe

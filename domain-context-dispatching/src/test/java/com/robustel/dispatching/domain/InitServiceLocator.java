@@ -11,6 +11,7 @@ import com.robustel.dispatching.domain.elevator.PassengerController;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class InitServiceLocator {
     static {
@@ -47,6 +48,11 @@ public class InitServiceLocator {
                             @Override
                             public void release(long elevatorId) {
                                 System.out.println("release " + elevatorId);
+                            }
+
+                            @Override
+                            public void press(long elevatorId, Set<Floor> pressedFloor) {
+                                System.out.println("press " + pressedFloor);
                             }
                         },
                         PassengerController.class, new PassengerController() {
