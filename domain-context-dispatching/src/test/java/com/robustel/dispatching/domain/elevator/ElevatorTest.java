@@ -184,7 +184,7 @@ class ElevatorTest {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger), null, onPassage, new ArrayList<>(), new HashSet<>());
         Passenger of = Passenger.of("100");
-        Assertions.assertThrows(IllegalStateException.class, () -> elevator.finish(of));
+        Assertions.assertThrows(Elevator.RequestFinishedNotAllowedException.class, () -> elevator.finish(of));
     }
 
     @Test
@@ -334,7 +334,7 @@ class ElevatorTest {
         onPassage.add(firstPassenger);
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.WAITING_OUT, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
-        Assertions.assertThrows(IllegalStateException.class, () -> elevator.finish(thirdPassenger));
+        Assertions.assertThrows(Elevator.RequestFinishedNotAllowedException.class, () -> elevator.finish(thirdPassenger));
 
     }
 
@@ -469,7 +469,7 @@ class ElevatorTest {
         List<Passenger> onPassage = new ArrayList<>();
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
                 ElevatorState.WAITING_IN, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), firstPassenger, onPassage, new ArrayList<>(), new HashSet<>());
-        Assertions.assertThrows(IllegalStateException.class, () -> elevator.finish(thirdPassenger));
+        Assertions.assertThrows(Elevator.RequestFinishedNotAllowedException.class, () -> elevator.finish(thirdPassenger));
 
     }
 
