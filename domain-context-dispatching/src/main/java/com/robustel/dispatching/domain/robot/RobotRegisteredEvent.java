@@ -3,7 +3,6 @@ package com.robustel.dispatching.domain.robot;
 import com.robustel.ddd.core.AbstractEvent;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
 /**
  * @author YangXuehong
@@ -11,7 +10,6 @@ import lombok.ToString;
  */
 @Getter
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 public class RobotRegisteredEvent extends AbstractEvent {
     private Long robotId;
     private String modelId;

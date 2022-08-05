@@ -3,7 +3,9 @@ package com.robustel.dispatching.domain.elevator;
 import com.robustel.ddd.core.AbstractEntity;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -15,8 +17,6 @@ import java.util.Objects;
  */
 @Slf4j
 @Getter
-@NoArgsConstructor
-@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Request extends AbstractEntity<Long> {
     private Passenger passenger;

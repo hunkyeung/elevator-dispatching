@@ -4,7 +4,10 @@ import com.robustel.ddd.core.AbstractEntity;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import com.robustel.dispatching.domain.elevator.Request;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -18,10 +21,8 @@ import java.util.Objects;
  * @author YangXuehong
  * @date 2022/4/14
  */
-@Getter
-@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter(AccessLevel.PACKAGE)
 public class RequestHistory extends AbstractEntity<Long> {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private Request request;

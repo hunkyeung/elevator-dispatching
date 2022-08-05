@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class TakingElevatorApplicationTest {
@@ -26,6 +27,14 @@ class TakingElevatorApplicationTest {
         verify(SELECTING_ELEVATOR_STRATEGY_SERVICE).selectElevator(Passenger.of("1"), Floor.of(1), Floor.of(10));
         verify(elevator).take(Passenger.of("1"), Floor.of(1), Floor.of(10));
         verify(ELEVATOR_REPOSITORY).save(elevator);
+    }
+
+    @Test
+    void testTakeButNoElevatorAvailableException() {
+        when(SELECTING_ELEVATOR_STRATEGY_SERVICE.selectElevator(any(), any(), any())).thenReturn(Optional.empty());
+        TakingElevatorApplication.Command command = new TakingElevatorApplication.Command(Passenger.of("1"), Floor.of(1), Floor.of(10));
+        TakingElevatorApplication application = new TakingElevatorApplication(SELECTING_ELEVATOR_STRATEGY_SERVICE, ELEVATOR_REPOSITORY);
+        assertThrows(TakingElevatorApplication.NoElevatorAvailableException.class, () -> application.doTakeElevator(command));
     }
 
 }

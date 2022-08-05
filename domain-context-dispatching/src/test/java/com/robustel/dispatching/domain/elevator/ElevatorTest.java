@@ -1,5 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
+import com.robustel.ddd.core.DomainException;
 import com.robustel.dispatching.domain.InitServiceLocator;
 import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import org.junit.jupiter.api.Assertions;
@@ -24,15 +25,22 @@ class ElevatorTest {
 
     @BeforeEach
     void init() {
-        elevator = Elevator.create("foobar2000", 10, -2);
+        Set<Floor> pressedFloor = new HashSet<>();
+        pressedFloor.add(Floor.of(2));
+        pressedFloor.add(Floor.of(5));
+        pressedFloor.add(Floor.of(10));
+
+        elevator = new Elevator(1L, "foobar2000", Floor.of(10), Floor.of(-1), null, null,
+                ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(), null,
+                new ArrayList<>(), new ArrayList<>(), pressedFloor);
     }
 
     @Test
-    void Given_Normal_When_Create_When_Expected() {
+    void Given_Normal_When_Create_Then_Expected() {
         assertNotNull(elevator.id());
         assertEquals("foobar2000", elevator.getName());
         assertEquals(Floor.of(10), elevator.getHighest());
-        assertEquals(Floor.of(-2), elevator.getLowest());
+        assertEquals(Floor.of(-1), elevator.getLowest());
         assertNull(elevator.getCurrentFloor());
         assertEquals(ElevatorState.NONE, elevator.getState());
         assertTrue(elevator.getToBeNotified().isEmpty());
@@ -44,18 +52,67 @@ class ElevatorTest {
     }
 
     @Test
+    void Given_NullName_When_Create_Then_ThrowsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> Elevator.create(null, 10, 2));
+    }
+
+    @Test
+    void Given_NonNullName_When_Create_Then_Expected() {
+        Elevator elevator = Elevator.create("foobar2000", 10, 2);
+        assertNotNull(elevator);
+    }
+
+    @Test
+    void Given_NonNullName_When_CreateWithId_Then_Expected() {
+        Elevator elevator = Elevator.create(0, "foobar2000", 2, 1);
+        assertEquals(0, elevator.id());
+    }
+
+    @Test
+    void Given_NullName_When_CreateWithId_Then_Expected() {
+        assertThrows(NullPointerException.class, () -> Elevator.create(0, null, 2, 1));
+    }
+
+    @Test
+    void Given_NonZeroId_When_Create_Then_IdWhatYouGave() {
+        Elevator elevator = Elevator.create(1, "foobar2000", 2, 1);
+        assertEquals(1, elevator.id());
+    }
+
+    @Test
     void Given_HighestLessThanLowest_When_Create_When_Exception() {
-        assertThrows(IllegalArgumentException.class, () -> Elevator.create("foobar2000", -2, 10));
+        assertThrows(DomainException.class, () -> Elevator.create("foobar2000", -2, 10));
+    }
+
+    @Test
+    void Given_Null_When_Arrive_Then_ThrowNullPointerException() {
+        Floor floor2 = Floor.of(2);
+        assertThrows(NullPointerException.class, () -> elevator.arrive(null, Direction.UP));
+        assertThrows(NullPointerException.class, () -> elevator.arrive(floor2, null));
+    }
+
+    @Test
+    void Given_FloorAndDirection_When_Arrive_Then_CurrentFloorAndDirectionWereSet() {
+        Floor floor2 = Floor.of(2);
+        assertTrue(elevator.getPressedFloor().contains(floor2));
+        elevator.arrive(floor2, Direction.UP);
+        assertNull(elevator.getCurrentFloor());
+        assertNull(elevator.getNextDirection());
+        assertFalse(elevator.getPressedFloor().contains(floor2));
     }
 
 
     @Test
-    void Given_FloorAndDirection_When_Open_Then_CurrentFloorAndDirectionWereSet() {
-        elevator.arrive(Floor.of(2), Direction.UP);
-        assertNull(elevator.getCurrentFloor());
-        assertNull(elevator.getNextDirection());
+    void Given_NullParameter_When_Take_Then_ThrowNullPointerException() {
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, Direction.STOP,
+                ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), Set.of(), null,
+                new ArrayList<>(), new ArrayList<>(), new HashSet<>());
+        assertThrows(NullPointerException.class, () -> elevator.take(null, null, null));
+        Passenger passenger = Passenger.of("1");
+        Floor floor = Floor.of(1);
+        assertThrows(NullPointerException.class, () -> elevator.take(passenger, null, null));
+        assertThrows(NullPointerException.class, () -> elevator.take(passenger, floor, null));
     }
-
 
     @Test
     void Given_RequestOfPassengerExist_When_Take_Then_ThrowsException() {
@@ -107,6 +164,11 @@ class ElevatorTest {
     }
 
     @Test
+    void Given_NullPassenger_When_Bind_Then_ThrowNullPointerException() {
+        assertThrows(NullPointerException.class, () -> elevator.bind(null));
+    }
+
+    @Test
     void Given_BindingPassenger_When_Bind_Then_Ignore() {
         elevator.bind(Passenger.of("1"));
         elevator.bind(Passenger.of("1"));
@@ -120,6 +182,11 @@ class ElevatorTest {
     }
 
     @Test
+    void Given_NullPassenger_When_Unbind_Then_NullPointerException() {
+        assertThrows(NullPointerException.class, () -> elevator.unbind(null));
+    }
+
+    @Test
     void Given_BindingPassenger_When_Unbind_Then_Ignore() {
         elevator.bind(Passenger.of("1"));
         assertTrue(elevator.isBinding(Passenger.of("1")));
@@ -128,19 +195,33 @@ class ElevatorTest {
     }
 
     @Test
-    void Given_In_When_IsMatched_Then_ReturnFalse() {
+    void Given_FromOrToGreaterThanHighest_When_IsMatched_Then_ReturnFalse() {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(10), Floor.of(-1), null, Direction.STOP,
                 ElevatorState.NONE, Map.of("1", mock(Request.class)), new ArrayList<>(), Set.of(Passenger.of("1")),
                 null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
-        assertTrue(elevator.isMatched(Floor.of(-1), Floor.of(10)));
+        assertFalse(elevator.isMatched(Floor.of(11), Floor.of(2)));
+        assertFalse(elevator.isMatched(Floor.of(5), Floor.of(20)));
+        assertFalse(elevator.isMatched(Floor.of(50), Floor.of(20)));
     }
 
     @Test
-    void Given_Out_When_IsMatched_Then_ReturnTrue() {
+    void Given_FromOrToLowerThanLowest_When_IsMatched_Then_ReturnFalse() {
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(10), Floor.of(-1), null, Direction.STOP,
+                ElevatorState.NONE, Map.of("1", mock(Request.class)), new ArrayList<>(), Set.of(Passenger.of("1")),
+                null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
+        assertFalse(elevator.isMatched(Floor.of(-2), Floor.of(-20)));
+        assertFalse(elevator.isMatched(Floor.of(1), Floor.of(-20)));
+        assertFalse(elevator.isMatched(Floor.of(-2), Floor.of(-1)));
+    }
+
+    @Test
+    void Given_FromAndToBetweenHighestAndLowest_When_IsMatched_Then_ReturnTrue() {
         Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(10), Floor.of(-1), null, Direction.STOP,
                 ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), Set.of(Passenger.of("1")), null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
-        assertFalse(elevator.isMatched(Floor.of(-1), Floor.of(20)));
-        assertFalse(elevator.isMatched(Floor.of(-6), Floor.of(7)));
+        assertTrue(elevator.isMatched(Floor.of(-1), Floor.of(10)));
+        assertTrue(elevator.isMatched(Floor.of(10), Floor.of(-1)));
+        assertTrue(elevator.isMatched(Floor.of(1), Floor.of(5)));
+        assertTrue(elevator.isMatched(Floor.of(7), Floor.of(3)));
     }
 
     @Test
@@ -170,22 +251,6 @@ class ElevatorTest {
         Assertions.assertThrows(Elevator.RequestNotFoundException.class, () -> elevator.cancelRequest(of, ""));
     }
 
-    @Test
-    void Given_NoneStateMode_When_Finish_Then_ThrowsIllegalStateException() {
-        Passenger firstPassenger = Passenger.of("1");
-        Map<String, Request> requests = new HashMap<>();
-        Floor firstFloor = Floor.of(1);
-        Floor fifthFloor = Floor.of(5);
-        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), Instant.now(), null, null);
-        requests.put("1", firstRequest);
-        List<Passenger> toBeNotified = new ArrayList<>();
-        List<Passenger> onPassage = new ArrayList<>();
-        onPassage.add(firstPassenger);
-        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
-                ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger), null, onPassage, new ArrayList<>(), new HashSet<>());
-        Passenger of = Passenger.of("100");
-        Assertions.assertThrows(Elevator.RequestFinishedNotAllowedException.class, () -> elevator.finish(of));
-    }
 
     @Test
     void Given_NoneStateOnPassage_When_CancelRequest_Then_Expected() {
@@ -314,7 +379,55 @@ class ElevatorTest {
     }
 
     @Test
-    void Given_WaitingOutState_When_FinishWithoutNotified_Then_ThrowsIllegalStateException() {
+    void Given_NoneStateMode_When_Finish_Then_ThrowsRequestFinishedNotAllowedException() {
+        Passenger firstPassenger = Passenger.of("1");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), Instant.now(), null, null);
+        requests.put("1", firstRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(firstPassenger);
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), fifthFloor, Direction.UP,
+                ElevatorState.NONE, requests, toBeNotified, Set.of(firstPassenger), null, onPassage, new ArrayList<>(), new HashSet<>());
+        Passenger of = Passenger.of("100");
+        Assertions.assertThrows(Elevator.RequestFinishedNotAllowedException.class, () -> elevator.finish(of));
+    }
+
+    @Test
+    void Given_WaitingOutState_When_FinishWithoutToBeNotified_Then_Expected() {
+        Passenger firstPassenger = Passenger.of("1");
+        Passenger secondPassenger = Passenger.of("2");
+        Passenger thirdPassenger = Passenger.of("3");
+        Passenger fourthPassenger = Passenger.of("4");
+        Map<String, Request> requests = new HashMap<>();
+        Floor firstFloor = Floor.of(1);
+        Floor fifthFloor = Floor.of(5);
+        Floor sixthFloor = Floor.of(6);
+        Request firstRequest = new Request(1L, firstPassenger, firstFloor, fifthFloor, Instant.now(), Instant.now(), null, null);
+        requests.put("1", firstRequest);
+        Request secondRequest = new Request(2L, secondPassenger, firstFloor, fifthFloor, Instant.now(), Instant.now(), null, null);
+        requests.put("2", secondRequest);
+        Request thirdRequest = new Request(3L, thirdPassenger, firstFloor, fifthFloor, Instant.now(), null, null, null);
+        requests.put("3", thirdRequest);
+        Request fourthRequest = new Request(4L, thirdPassenger, firstFloor, sixthFloor, Instant.now(), Instant.now(), null, null);
+        requests.put("4", fourthRequest);
+        List<Passenger> toBeNotified = new ArrayList<>();
+        toBeNotified.add(secondPassenger);
+        List<Passenger> onPassage = new ArrayList<>();
+        onPassage.add(firstPassenger);
+        onPassage.add(secondPassenger);
+        onPassage.add(fourthPassenger);
+        Elevator elevator = new Elevator(1L, "foobar2000", Floor.of(-1), Floor.of(10), null, null,
+                ElevatorState.WAITING_OUT, requests, toBeNotified, Set.of(firstPassenger, secondPassenger, thirdPassenger), null, onPassage, new ArrayList<>(), new HashSet<>());
+        elevator.arrive(Floor.of(5), Direction.DOWN);
+        assertTrue(elevator.getTransferPassengers().contains(fourthPassenger));
+
+    }
+
+    @Test
+    void Given_WaitingOutState_When_FinishWithoutNotified_Then_ThrowsRequestFinishedNotAllowedException() {
         Passenger firstPassenger = Passenger.of("1");
         Passenger secondPassenger = Passenger.of("2");
         Passenger thirdPassenger = Passenger.of("3");

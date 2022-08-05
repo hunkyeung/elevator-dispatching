@@ -1,12 +1,14 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.ValueObject;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.ToString;
 
 @ToString
 @Getter
 @EqualsAndHashCode
-@NoArgsConstructor
 public class Passenger implements ValueObject {
     private String id;
 

@@ -8,7 +8,6 @@ import com.robustel.dispatching.domain.requesthistory.RequestHistory;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -22,6 +21,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 public class Elevator extends AbstractEntity<Long> {
+    private final transient StateMode noneStateMode = new NoneStateMode();
+    private final transient StateMode waitingInStateMode = new WaitingInStateMode();
+    private final transient StateMode waitingOutStateMode = new WaitingOutStateMode();
     private static final int CAPACITY = 2;
     private final String name;
     private final Floor highest;//最高楼层
@@ -29,7 +31,7 @@ public class Elevator extends AbstractEntity<Long> {
     private Floor currentFloor;
     private Direction nextDirection;
     private ElevatorState state;
-    private StateMode stateMode;
+    private transient StateMode stateMode;
     private final Set<Passenger> binding;//乘客绑定电梯
     private final Map<String, Request> requests;//乘梯请求
     private List<Passenger> toBeNotified;//待通知乘客列表
@@ -48,6 +50,7 @@ public class Elevator extends AbstractEntity<Long> {
         this.lowest = lowest;
         this.currentFloor = currentFloor;
         this.nextDirection = nextDirection;
+        this.state = state;
         this.stateMode = initStateMode(state);
         this.requests = requests;
         this.toBeNotified = toBeNotified;
@@ -60,9 +63,9 @@ public class Elevator extends AbstractEntity<Long> {
 
     private StateMode initStateMode(ElevatorState state) {
         return switch (state) {
-            case WAITING_OUT -> new WaitingOutStateMode();
-            case WAITING_IN -> new WaitingInStateMode();
-            default -> new NoneStateMode();
+            case WAITING_OUT -> waitingOutStateMode;
+            case WAITING_IN -> waitingInStateMode;
+            default -> noneStateMode;
         };
     }
 
@@ -72,10 +75,7 @@ public class Elevator extends AbstractEntity<Long> {
 
     public static Elevator create(long id, @NonNull String name, int highest, int lowest) {
         if (lowest > highest) {
-            throw new IllegalArgumentException(String.format("最低楼层【%s】不能大于最高楼层【%s】", lowest, highest));
-        }
-        if (id == 0) {
-            id = ServiceLocator.service(UidGenerator.class).nextId();
+            throw new DomainException(String.format("最低楼层【%s】不能大于最高楼层【%s】", lowest, highest));
         }
         return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null,
                 Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(),
@@ -112,7 +112,6 @@ public class Elevator extends AbstractEntity<Long> {
         this.currentFloor = floor;
         this.nextDirection = nextDirection;
         this.pressedFloor.remove(floor);
-        this.stateMode = new WaitingOutStateMode();
         this.stateMode.prepare();
     }
 
@@ -125,11 +124,11 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     public boolean isMatched(Floor from, Floor to) {
-        return from.compareTo(lowest) >= 0 && from.compareTo(highest) <= 0 && to.compareTo(lowest) >= 0 && to.compareTo(highest) <= 0;
+        return lowest.compareTo(from) <= 0 && highest.compareTo(from) >= 0 && lowest.compareTo(to) <= 0 && highest.compareTo(to) >= 0;
     }
 
     public void release() {
-        this.stateMode = new NoneStateMode();
+        this.stateMode = noneStateMode;
         this.notified = null;
         this.currentFloor = null;
         this.nextDirection = null;
@@ -169,6 +168,8 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public void prepare() {
+            stateMode = waitingOutStateMode;
+            stateMode.prepare();
         }
 
         protected void process(Passenger passenger) {
@@ -244,7 +245,7 @@ public class Elevator extends AbstractEntity<Long> {
         @Override
         protected void next() {
             if (toBeNotified.isEmpty()) {
-                stateMode = new WaitingInStateMode();
+                stateMode = waitingInStateMode;
                 stateMode.prepare();
             } else {
                 notified = new OnPassageStack().peak();
@@ -257,7 +258,7 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public Optional<RequestHistory> finish(Passenger passenger) {
-            if (Objects.isNull(notified) || !notified.equals(passenger)) {
+            if (!Objects.equals(passenger, notified)) {
                 throw new RequestFinishedNotAllowedException(String.format("未通知该乘客【%s】出进梯，不允许执行完成【finish】动作", passenger.getId()));
             }
             var request = requests.remove(passenger.getId());
@@ -305,7 +306,7 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public Optional<RequestHistory> finish(Passenger passenger) {
-            if (Objects.isNull(notified) || !notified.equals(passenger)) {
+            if (!Objects.equals(passenger, notified)) {
                 throw new RequestFinishedNotAllowedException(String.format("未通知该乘客【%s】出进梯，不允许执行完成【finish】动作", passenger.getId()));
             }
             var request = requests.get(passenger.getId());
@@ -321,7 +322,6 @@ public class Elevator extends AbstractEntity<Long> {
      * @author YangXuehong
      * @date 2022/4/19
      */
-    @ToString(callSuper = true)
     public static class ElevatorNotFoundException extends DomainException {
         public ElevatorNotFoundException(Long elevatorId) {
             super(String.format("找不到该电梯【%s】", elevatorId));
@@ -332,7 +332,6 @@ public class Elevator extends AbstractEntity<Long> {
      * @author YangXuehong
      * @date 2022/4/19
      */
-    @ToString(callSuper = true)
     public static class RequestNotFoundException extends DomainException {
         public RequestNotFoundException(Passenger passenger, Long elevatorId) {
             super(String.format("找不到该乘客【%s】乘梯【%s】请求", passenger, elevatorId));
@@ -343,14 +342,12 @@ public class Elevator extends AbstractEntity<Long> {
      * @author YangXuehong
      * @date 2022/4/19
      */
-    @ToString(callSuper = true)
     public static class RequestAlreadyExistException extends DomainException {
         public RequestAlreadyExistException(Passenger passenger, Long elevatorId) {
             super(String.format("已经存在该机器人【%s】搭乘电梯【%s】请求", passenger, elevatorId));
         }
     }
 
-    @ToString(callSuper = true)
     public static class RequestFinishedNotAllowedException extends DomainException {
         public RequestFinishedNotAllowedException(String message) {
             super(message);

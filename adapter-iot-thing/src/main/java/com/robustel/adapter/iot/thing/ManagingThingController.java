@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
  * @date 2022/4/13
  */
 @Component
-public class ManageringThingController {
+public class ManagingThingController {
     private final RegisteringDirectThingApplication registeringDirectThingApplication;
     private final RegisteringIndirectThingApplication registeringIndirectThingApplication;
     private final RemovingThingApplication removingThingApplication;
 
-    public ManageringThingController(RegisteringDirectThingApplication registeringDirectThingApplication, RegisteringIndirectThingApplication registeringIndirectThingApplication, RemovingThingApplication removingThingApplication) {
+    public ManagingThingController(RegisteringDirectThingApplication registeringDirectThingApplication, RegisteringIndirectThingApplication registeringIndirectThingApplication, RemovingThingApplication removingThingApplication) {
         this.registeringDirectThingApplication = registeringDirectThingApplication;
         this.registeringIndirectThingApplication = registeringIndirectThingApplication;
         this.removingThingApplication = removingThingApplication;

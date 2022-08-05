@@ -42,4 +42,19 @@ class AbstractSelectingElevatorStrategyServiceTest {
         assertFalse(elevator.isEmpty());
     }
 
+    @Test
+    void Given_Null_When_SelectElevator_Then_Exception() {
+        AbstractSelectingElevatorStrategyService service = new AbstractSelectingElevatorStrategyService() {
+            @Override
+            protected Optional<Elevator> select(Passenger passenger, Floor from, Floor to) {
+                return Optional.of(mock(Elevator.class));
+            }
+        };
+        assertThrows(NullPointerException.class, () -> service.selectElevator(null, null, null));
+        Passenger passenger = Passenger.of("1");
+        Floor floor1 = Floor.of(1);
+        assertThrows(NullPointerException.class, () -> service.selectElevator(passenger, null, null));
+        assertThrows(NullPointerException.class, () -> service.selectElevator(passenger, floor1, null));
+    }
+
 }

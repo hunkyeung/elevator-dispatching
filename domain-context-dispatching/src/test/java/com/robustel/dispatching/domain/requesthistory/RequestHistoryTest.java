@@ -1,6 +1,8 @@
 package com.robustel.dispatching.domain.requesthistory;
 
 import com.robustel.dispatching.domain.InitServiceLocator;
+import com.robustel.dispatching.domain.elevator.Floor;
+import com.robustel.dispatching.domain.elevator.Passenger;
 import com.robustel.dispatching.domain.elevator.Request;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,16 @@ class RequestHistoryTest {
         assertNotNull(of.getRequest());
         assertEquals(1L, of.getElevatorId());
         assertEquals(Instant.now().truncatedTo(ChronoUnit.SECONDS), of.getArchivedOn().truncatedTo(ChronoUnit.SECONDS));
+    }
+
+    @Test
+    void testToData() {
+        RequestHistory requestHistory = new RequestHistory(
+                1L,
+                new Request(1L, Passenger.of("1"), Floor.of(1), Floor.of(2), Instant.EPOCH, Instant.EPOCH, null, ""),
+                1L, Instant.EPOCH);
+        RequestHistory.Data data = requestHistory.toData();
+        assertEquals(new RequestHistory.Data(1, 1, "1", 1, 2, "1970-01-01 08:00:00", "1970-01-01 08:00:00", "", "", 1, "1970-01-01 08:00:00"), data);
     }
 
 }

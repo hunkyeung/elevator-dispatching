@@ -1,5 +1,6 @@
 package com.robustel.dispatching.domain.robot;
 
+import com.codebox.bean.JavaBeanTester;
 import com.robustel.dispatching.domain.InitServiceLocator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -4,6 +4,7 @@ import com.robustel.adapter.persistence.mongodb.PersistentObject;
 import com.robustel.adapter.persistence.mongodb.thing.ThingStatusRepositoryMongoDB;
 import com.robustel.thing.domain.thing_status.ThingStatus;
 import com.robustel.thing.domain.thing_status.ThingStatusRepository;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,7 @@ import java.util.*;
 @Repository
 @Slf4j
 public class ThingStatusRepositoryInMemoryAtRuntime extends ThingStatusRepositoryMongoDB implements ThingStatusRepository {
+    @Getter
     private Map<String, Map<String, ThingStatus>> thingStatusTenantMap;
 
     public ThingStatusRepositoryInMemoryAtRuntime(MongoTemplate mongoTemplate) {

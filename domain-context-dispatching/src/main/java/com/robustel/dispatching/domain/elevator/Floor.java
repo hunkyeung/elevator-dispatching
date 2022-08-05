@@ -3,14 +3,12 @@ package com.robustel.dispatching.domain.elevator;
 import com.robustel.ddd.core.ValueObject;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * @author YangXuehong
  * @date 2022/4/8
  */
 @Getter
-@NoArgsConstructor
 @EqualsAndHashCode
 public class Floor implements ValueObject, Comparable<Floor> {
     private int value; //0未用，负数为地下层，正数为地面层
@@ -29,15 +27,11 @@ public class Floor implements ValueObject, Comparable<Floor> {
 
     @Override
     public int compareTo(Floor to) {
-        return this.value - to.getValue();
+        return this.value - to.value;
     }
 
     @Override
     public String toString() {
         return String.valueOf(this.value);
-    }
-
-    public static int abs(Floor a, Floor b) {
-        return Math.abs(a.value - b.value);
     }
 }
