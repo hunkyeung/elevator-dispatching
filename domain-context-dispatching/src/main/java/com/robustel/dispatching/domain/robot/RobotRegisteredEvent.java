@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class RobotRegisteredEvent extends AbstractEvent {
-    private Long robotId;
-    private String modelId;
+    private final Long robotId;
+    private final String modelId;
 
     public RobotRegisteredEvent(Long robotId, String modelId) {
         super();

@@ -11,7 +11,7 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode
 public class Floor implements ValueObject, Comparable<Floor> {
-    private int value; //0未用，负数为地下层，正数为地面层
+    private final int value; //0未用，负数为地下层，正数为地面层
 
     public Floor(int value) {
         this.value = value;

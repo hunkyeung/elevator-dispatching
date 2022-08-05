@@ -1,5 +1,6 @@
 package com.robustel.dispatching.domain.elevator;
 
+import com.robustel.ddd.core.DomainException;
 import com.robustel.dispatching.domain.InitServiceLocator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,7 +8,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,7 +36,7 @@ class RequestTest {
                 () -> Request.create(passenger, null, floor2));
         assertThrows(NullPointerException.class,
                 () -> Request.create(passenger, floor_1, null));
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(DomainException.class,
                 () -> Request.create(passenger, floor_1, floor_1));
     }
 

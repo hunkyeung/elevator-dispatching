@@ -10,7 +10,7 @@ import lombok.ToString;
 @Getter
 @EqualsAndHashCode
 public class Passenger implements ValueObject {
-    private String id;
+    private final String id;
 
     public Passenger(String id) {
         this.id = id;

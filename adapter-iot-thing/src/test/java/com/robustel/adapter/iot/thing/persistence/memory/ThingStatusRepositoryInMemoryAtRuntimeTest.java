@@ -17,12 +17,11 @@ import static org.mockito.Mockito.when;
 
 class ThingStatusRepositoryInMemoryAtRuntimeTest {
 
-    private MongoTemplate mongoTemplate;
     private ThingStatusRepositoryInMemoryAtRuntime thingStatusRepositoryInMemoryAtRuntime;
 
     @BeforeEach
     void init() {
-        mongoTemplate = mock(MongoTemplate.class);
+        MongoTemplate mongoTemplate = mock(MongoTemplate.class);
         ThingStatus status1 = mock(ThingStatus.class);
         when(status1.getId()).thenReturn("1");
         ThingStatus status2 = mock(ThingStatus.class);
@@ -32,10 +31,10 @@ class ThingStatusRepositoryInMemoryAtRuntimeTest {
         ThingStatus status4 = mock(ThingStatus.class);
         when(status4.getId()).thenReturn("4");
         when(mongoTemplate.findAll(PersistentObject.class, "th_thing_status")).thenReturn(
-                List.of(new PersistentObject("1", "robustel", status1),
-                        new PersistentObject("2", "robustel2", status2),
-                        new PersistentObject("3", "robustel", status3),
-                        new PersistentObject("4", "robustel4", status4))
+                List.of(new PersistentObject<>("1", "robustel", status1),
+                        new PersistentObject<>("2", "robustel2", status2),
+                        new PersistentObject<>("3", "robustel", status3),
+                        new PersistentObject<>("4", "robustel4", status4))
         );
         thingStatusRepositoryInMemoryAtRuntime = new ThingStatusRepositoryInMemoryAtRuntime(mongoTemplate);
         thingStatusRepositoryInMemoryAtRuntime.init();
@@ -49,7 +48,7 @@ class ThingStatusRepositoryInMemoryAtRuntimeTest {
         assertFalse(thingStatusRepositoryInMemoryAtRuntime.getThingStatusTenantMap().containsKey("robustel5"));
         assertEquals(Set.of("1", "3"), thingStatusRepositoryInMemoryAtRuntime.getThingStatusTenantMap().get("robustel").keySet());
         assertEquals(Set.of("2"), thingStatusRepositoryInMemoryAtRuntime.getThingStatusTenantMap().get("robustel2").keySet());
-        assertFalse(thingStatusRepositoryInMemoryAtRuntime.getThingStatusTenantMap().get("robustel").keySet().contains("4"));
+        assertFalse(thingStatusRepositoryInMemoryAtRuntime.getThingStatusTenantMap().get("robustel").containsKey("4"));
     }
 
     @Test

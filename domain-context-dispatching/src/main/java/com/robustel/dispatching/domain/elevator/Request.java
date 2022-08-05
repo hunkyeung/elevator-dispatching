@@ -1,6 +1,7 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.AbstractEntity;
+import com.robustel.ddd.core.DomainException;
 import com.robustel.ddd.service.ServiceLocator;
 import com.robustel.ddd.service.UidGenerator;
 import lombok.EqualsAndHashCode;
@@ -19,10 +20,10 @@ import java.util.Objects;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class Request extends AbstractEntity<Long> {
-    private Passenger passenger;
-    private Floor from;
-    private Floor to;
-    private Instant at;
+    private final Passenger passenger;
+    private final Floor from;
+    private final Floor to;
+    private final Instant at;
     private Instant in;
     private Instant out;
     private String status;
@@ -40,8 +41,8 @@ public class Request extends AbstractEntity<Long> {
 
     public static Request create(@NonNull Passenger passenger, @NonNull Floor from, @NonNull Floor to) {
         var id = ServiceLocator.service(UidGenerator.class).nextId();
-        if (from.equals(to)) {
-            throw new IllegalArgumentException("出发楼层与目标楼层不能相同");
+        if (Objects.equals(from, to)) {
+            throw new DomainException("出发楼层与目标楼层不能相同");
         }
         return new Request(id, passenger, from, to, Instant.now(), null, null, null);
     }

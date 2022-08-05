@@ -15,7 +15,7 @@ import lombok.NonNull;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class Robot extends AbstractEntity<Long> {
-    private String name;
+    private final String name;
 
     public Robot(Long id, String name) {
         super(id);
