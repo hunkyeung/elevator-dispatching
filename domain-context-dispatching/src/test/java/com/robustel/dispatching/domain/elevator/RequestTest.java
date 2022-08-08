@@ -1,24 +1,37 @@
 package com.robustel.dispatching.domain.elevator;
 
 import com.robustel.ddd.core.DomainException;
-import com.robustel.dispatching.domain.InitServiceLocator;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import com.robustel.ddd.service.EventPublisher;
+import com.robustel.ddd.service.ServiceLocator;
+import com.robustel.ddd.service.UidGenerator;
+import org.junit.jupiter.api.*;
+import org.mockito.MockedStatic;
 
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RequestTest {
 
     private Request of;
 
+    public static final MockedStatic<ServiceLocator> MOCKED_STATIC = mockStatic(ServiceLocator.class);
+
     @BeforeAll
-    static void initALl() {
-        InitServiceLocator.init();
+    static void initAll() {
+        MOCKED_STATIC.when(() -> ServiceLocator.service(UidGenerator.class)).thenReturn((UidGenerator) () -> 1);
+        MOCKED_STATIC.when(() -> ServiceLocator.service(EventPublisher.class)).thenReturn(mock(EventPublisher.class));
     }
+
+    @AfterAll
+    static void close() {
+        MOCKED_STATIC.close();
+    }
+
 
     @BeforeEach
     void init() {
