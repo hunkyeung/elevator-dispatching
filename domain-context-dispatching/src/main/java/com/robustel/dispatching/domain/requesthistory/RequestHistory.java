@@ -25,9 +25,10 @@ import java.util.Objects;
 @Getter(AccessLevel.PACKAGE)
 public class RequestHistory extends AbstractEntity<Long> {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private Request request;
-    private Long elevatorId;
-    private Instant archivedOn;
+    private final Request request;
+    private final Long elevatorId;
+    private final Instant archivedOn;
+    private static final String CN = "UTC+8";
 
     public RequestHistory(Long id, Request request, Long elevatorId, Instant archivedOn) {
         super(id);
@@ -54,7 +55,7 @@ public class RequestHistory extends AbstractEntity<Long> {
         if (Objects.isNull(instant)) {
             return StringUtils.EMPTY;
         } else {
-            return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
+            return LocalDateTime.ofInstant(instant, ZoneId.of(CN)).format(DATE_TIME_FORMATTER);
         }
     }
 
