@@ -81,7 +81,8 @@ public class ElevatorControllerViaMqtt implements ElevatorController {
     public void listenOn(MatchedEvent event) {
         // 当电梯开门时
         if (getEventResource().equals(event.getFact().get(URI))) {
-            Map<String, Object> properties = ((Map) event.getFact().get(PROPERTIES));
+            @SuppressWarnings("unchecked")
+            Map<String, Object> properties = ((Map<String, Object>) event.getFact().get(PROPERTIES));
             var floor = Integer.parseInt((String) properties.get(FLOOR));
             var direction = Direction.valueOf((String) properties.get(DIRECTION));
             log.debug("电梯【{}】已到达{}楼", event.getInstanceId(), floor);

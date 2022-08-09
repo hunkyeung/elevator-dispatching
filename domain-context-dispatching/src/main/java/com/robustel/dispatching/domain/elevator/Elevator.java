@@ -36,7 +36,7 @@ public class Elevator extends AbstractEntity<Long> {
     private final Map<String, Request> requests;//乘梯请求
     private List<Passenger> toBeNotified;//待通知乘客列表
     private Passenger notified;//当前通知的乘客
-    private List<Passenger> transferPassengers;//中转乘客
+    private final List<Passenger> transferPassengers;//中转乘客
     private final List<Passenger> onPassage;//乘梯中的乘客
     private final Set<Floor> pressedFloor;
 
@@ -209,7 +209,7 @@ public class Elevator extends AbstractEntity<Long> {
         }
     }
 
-    public abstract class AbstractNotNoneStateMode extends AbstractStateMode {
+    public abstract class AbstractWaitingStateMode extends AbstractStateMode {
         protected abstract void next();
 
         @Override
@@ -227,7 +227,7 @@ public class Elevator extends AbstractEntity<Long> {
         }
     }
 
-    private class WaitingOutStateMode extends AbstractNotNoneStateMode {
+    private class WaitingOutStateMode extends AbstractWaitingStateMode {
         public WaitingOutStateMode() {
             state = ElevatorState.WAITING_OUT;
         }
@@ -271,7 +271,7 @@ public class Elevator extends AbstractEntity<Long> {
 
     }
 
-    private class WaitingInStateMode extends AbstractNotNoneStateMode {
+    private class WaitingInStateMode extends AbstractWaitingStateMode {
 
         public WaitingInStateMode() {
             state = ElevatorState.WAITING_IN;
