@@ -163,12 +163,6 @@ public class Elevator extends AbstractEntity<Long> {
 
     private abstract class AbstractStateMode implements StateMode {
 
-        @Override
-        public void prepare() {
-            stateMode = new WaitingOutStateMode();
-            stateMode.prepare();
-        }
-
         protected void process(Passenger passenger) {
 
         }
@@ -186,10 +180,6 @@ public class Elevator extends AbstractEntity<Long> {
             return RequestHistory.create(request, id());
         }
 
-        @Override
-        public Optional<RequestHistory> finish(Passenger passenger) {
-            throw new RequestFinishedNotAllowedException(String.format("电梯当前状态为【%s】，不允许执行完成【finish】动作", state));
-        }
     }
 
 
@@ -199,10 +189,21 @@ public class Elevator extends AbstractEntity<Long> {
         }
 
         @Override
+        public void prepare() {
+            stateMode = new WaitingOutStateMode();
+            stateMode.prepare();
+        }
+
+        @Override
         public void press(Floor floor) {
             if (pressedFloor.add(floor)) {
                 ServiceLocator.service(ElevatorController.class).press(id(), floor);
             }
+        }
+
+        @Override
+        public Optional<RequestHistory> finish(Passenger passenger) {
+            throw new RequestFinishedNotAllowedException(String.format("电梯当前状态为【%s】，不允许执行完成【finish】动作", state));
         }
     }
 
