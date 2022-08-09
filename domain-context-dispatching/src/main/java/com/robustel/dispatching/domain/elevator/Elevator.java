@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 public class Elevator extends AbstractEntity<Long> {
-    private final transient StateMode noneStateMode = new NoneStateMode();
-    private final transient StateMode waitingInStateMode = new WaitingInStateMode();
-    private final transient StateMode waitingOutStateMode = new WaitingOutStateMode();
     private static final int CAPACITY = 2;
     private final String name;
     private final Floor highest;//最高楼层
@@ -63,9 +60,9 @@ public class Elevator extends AbstractEntity<Long> {
 
     private StateMode initStateMode(ElevatorState state) {
         return switch (state) {
-            case WAITING_OUT -> waitingOutStateMode;
-            case WAITING_IN -> waitingInStateMode;
-            default -> noneStateMode;
+            case WAITING_OUT -> new WaitingOutStateMode();
+            case WAITING_IN -> new WaitingInStateMode();
+            default -> new NoneStateMode();
         };
     }
 
@@ -128,7 +125,7 @@ public class Elevator extends AbstractEntity<Long> {
     }
 
     public void release() {
-        this.stateMode = noneStateMode;
+        this.stateMode = new NoneStateMode();
         this.notified = null;
         this.currentFloor = null;
         this.nextDirection = null;
@@ -168,7 +165,7 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public void prepare() {
-            stateMode = waitingOutStateMode;
+            stateMode = new WaitingOutStateMode();
             stateMode.prepare();
         }
 
@@ -245,7 +242,7 @@ public class Elevator extends AbstractEntity<Long> {
         @Override
         protected void next() {
             if (toBeNotified.isEmpty()) {
-                stateMode = waitingInStateMode;
+                stateMode = new WaitingInStateMode();
                 stateMode.prepare();
             } else {
                 notified = new OnPassageStack().peak();
