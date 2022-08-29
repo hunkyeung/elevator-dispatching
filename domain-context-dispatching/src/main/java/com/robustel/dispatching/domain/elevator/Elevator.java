@@ -37,10 +37,7 @@ public class Elevator extends AbstractEntity<Long> {
     private final List<Passenger> onPassage;//乘梯中的乘客
     private final Set<Floor> pressedFloor;
 
-    public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor,
-                    Direction nextDirection, ElevatorState state, Map<String, Request> requests,
-                    List<Passenger> toBeNotified, Set<Passenger> binding, Passenger notified,
-                    List<Passenger> onPassage, List<Passenger> transferPassengers, Set<Floor> pressedFloor) {
+    public Elevator(Long id, String name, Floor highest, Floor lowest, Floor currentFloor, Direction nextDirection, ElevatorState state, Map<String, Request> requests, List<Passenger> toBeNotified, Set<Passenger> binding, Passenger notified, List<Passenger> onPassage, List<Passenger> transferPassengers, Set<Floor> pressedFloor) {
         super(id);
         this.name = name;
         this.highest = highest;
@@ -74,9 +71,10 @@ public class Elevator extends AbstractEntity<Long> {
         if (lowest > highest) {
             throw new DomainException(String.format("最低楼层【%s】不能大于最高楼层【%s】", lowest, highest));
         }
-        return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null,
-                Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(),
-                null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
+        if (id == 0) {
+            id = ServiceLocator.service(UidGenerator.class).nextId();
+        }
+        return new Elevator(id, name, Floor.of(highest), Floor.of(lowest), null, Direction.STOP, ElevatorState.NONE, new HashMap<>(), new ArrayList<>(), new HashSet<>(), null, new ArrayList<>(), new ArrayList<>(), new HashSet<>());
     }
 
     public boolean isBinding(Passenger passenger) {
@@ -232,10 +230,7 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public void prepare() {
-            toBeNotified = requests.values().stream()
-                    .filter(request -> request.shouldOut(currentFloor))
-                    .map(Request::getPassenger)
-                    .collect(Collectors.toList());
+            toBeNotified = requests.values().stream().filter(request -> request.shouldOut(currentFloor)).map(Request::getPassenger).collect(Collectors.toList());
             log.debug(String.format("准备待通知出梯乘客列表【%s】...", toBeNotified));
             next();
         }
@@ -277,15 +272,11 @@ public class Elevator extends AbstractEntity<Long> {
 
         @Override
         public void prepare() {
-            var toBeTook = requests.values().stream()
-                    .filter(request -> request.shouldIn(currentFloor, nextDirection))
-                    .sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
+            var toBeTook = requests.values().stream().filter(request -> request.shouldIn(currentFloor, nextDirection)).sorted(Comparator.comparing(Request::getAt).reversed()).map(Request::getPassenger).toList();
             var fromIndex = 0;
             var toIndex = Math.min(toBeTook.size(), CAPACITY);
             transferPassengers.addAll(toBeTook.subList(fromIndex, toIndex));
-            toBeNotified = requests.values().stream()
-                    .filter(request -> transferPassengers.contains(request.getPassenger()))
-                    .sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
+            toBeNotified = requests.values().stream().filter(request -> transferPassengers.contains(request.getPassenger())).sorted(Comparator.comparing(Request::getTo)).map(Request::getPassenger).collect(Collectors.toList());
             transferPassengers.clear();
             log.debug(String.format("准备待通知进梯乘客列表【%s】...", toBeNotified));
             next();
